@@ -53,14 +53,10 @@ export class OCREngine {
           onProgress(`Recognizing digit ${processed}/${total}...`);
         }
 
-        // Skip cells that are very clearly empty (optimization)
-        if (cells[r][c].isEmpty) {
-          confidences[r][c] = 100;
-          continue;
-        }
-
         try {
-          const { digit, confidence } = await this._recognizeDigit(cells[r][c].canvas);
+          // Add white padding around cell for better OCR
+          const padded = this._addPadding(cells[r][c].canvas, 10);
+          const { digit, confidence } = await this._recognizeDigit(padded);
           if (digit >= 1 && digit <= 9) {
             grid[r][c] = digit;
             confidences[r][c] = confidence;
@@ -75,14 +71,103 @@ export class OCREngine {
     return { grid, confidences };
   }
 
+  _addPadding(canvas, pad) {
+    const c = document.createElement('canvas');
+    c.width = canvas.width + pad * 2;
+    c.height = canvas.height + pad * 2;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(canvas, pad, pad);
+    return c;
+  }
+
   async _recognizeDigit(canvas) {
-    const { data } = await this.worker.recognize(canvas);
-    const text = data.text.trim();
-    const num = parseInt(text, 10);
-    if (num >= 1 && num <= 9 && data.confidence > 15) {
-      return { digit: num, confidence: data.confidence };
+    // Try multiple preprocessing approaches, pick best result
+    const attempts = this._preprocessCell(canvas);
+    let bestDigit = 0;
+    let bestConf = 0;
+
+    for (const attemptCanvas of attempts) {
+      try {
+        const { data } = await this.worker.recognize(attemptCanvas);
+        const text = data.text.trim();
+        const num = parseInt(text, 10);
+        if (num >= 1 && num <= 9 && data.confidence > bestConf) {
+          bestDigit = num;
+          bestConf = data.confidence;
+        }
+      } catch (e) { /* skip */ }
+    }
+
+    if (bestDigit >= 1 && bestConf > 10) {
+      return { digit: bestDigit, confidence: bestConf };
     }
     return { digit: 0, confidence: 0 };
+  }
+
+  /**
+   * Create multiple preprocessed versions of a cell for better OCR
+   */
+  _preprocessCell(srcCanvas) {
+    const w = srcCanvas.width;
+    const h = srcCanvas.height;
+    const results = [];
+
+    // Attempt 1: Original grayscale (as-is)
+    results.push(srcCanvas);
+
+    // Attempt 2: High contrast binary (OTSU-like threshold)
+    const ctx2 = this._createCanvas(w, h);
+    const imgData = srcCanvas.getContext('2d').getImageData(0, 0, w, h);
+    const pixels = imgData.data;
+
+    // Calculate mean brightness
+    let sum = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      sum += pixels[i]; // grayscale, R=G=B
+    }
+    const mean = sum / (pixels.length / 4);
+
+    // Binary: black text on white background
+    const binaryData = ctx2.createImageData(w, h);
+    const invData = this._createCanvas(w, h).createImageData(w, h);
+    for (let i = 0; i < pixels.length; i += 4) {
+      const val = pixels[i];
+      // If pixel is darker than mean → it's text → make it black
+      const isForeground = val < mean * 0.85;
+      binaryData.data[i] = isForeground ? 0 : 255;
+      binaryData.data[i+1] = isForeground ? 0 : 255;
+      binaryData.data[i+2] = isForeground ? 0 : 255;
+      binaryData.data[i+3] = 255;
+
+      // Inverted version
+      const isInvFg = val > mean * 1.15;
+      invData.data[i] = isInvFg ? 0 : 255;
+      invData.data[i+1] = isInvFg ? 0 : 255;
+      invData.data[i+2] = isInvFg ? 0 : 255;
+      invData.data[i+3] = 255;
+    }
+
+    // Attempt 2: Black text on white
+    const c2 = document.createElement('canvas');
+    c2.width = w; c2.height = h;
+    c2.getContext('2d').putImageData(binaryData, 0, 0);
+    results.push(c2);
+
+    // Attempt 3: Inverted (for light text on dark background)
+    const c3 = document.createElement('canvas');
+    c3.width = w; c3.height = h;
+    c3.getContext('2d').putImageData(invData, 0, 0);
+    results.push(c3);
+
+    return results;
+  }
+
+  _createCanvas(w, h) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    return c.getContext('2d');
   }
 
   async terminate() {
