@@ -48,10 +48,15 @@ export class OCREngine {
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
         processed++;
-        if (cells[r][c].isEmpty) continue;
 
         if (onProgress) {
           onProgress(`Recognizing digit ${processed}/${total}...`);
+        }
+
+        // Skip cells that are very clearly empty (optimization)
+        if (cells[r][c].isEmpty) {
+          confidences[r][c] = 100;
+          continue;
         }
 
         try {
@@ -74,7 +79,7 @@ export class OCREngine {
     const { data } = await this.worker.recognize(canvas);
     const text = data.text.trim();
     const num = parseInt(text, 10);
-    if (num >= 1 && num <= 9 && data.confidence > 20) {
+    if (num >= 1 && num <= 9 && data.confidence > 15) {
       return { digit: num, confidence: data.confidence };
     }
     return { digit: 0, confidence: 0 };

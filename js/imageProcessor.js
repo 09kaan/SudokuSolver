@@ -46,26 +46,16 @@ export class ImageProcessor {
         gridMat = gray.clone();
       }
 
-      // Enhance contrast
-      const enhanced = new cv.Mat();
-      cv.equalizeHist(gridMat, enhanced);
-
-      // Threshold the grid for clean cell extraction
+      // Threshold the grid for empty cell detection
       const gridThresh = new cv.Mat();
-      cv.adaptiveThreshold(enhanced, gridThresh, 255,
+      cv.adaptiveThreshold(gridMat, gridThresh, 255,
         cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 2);
 
-      // Clean up noise with morphological operations
-      const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(2, 2));
-      const cleaned = new cv.Mat();
-      cv.morphologyEx(gridThresh, cleaned, cv.MORPH_OPEN, kernel);
-
-      // Extract 81 cells
-      const cells = this._extractCells(enhanced, cleaned);
+      // Extract 81 cells (use raw grayscale for OCR, threshold for empty detection)
+      const cells = this._extractCells(gridMat, gridThresh);
 
       // Cleanup
-      src.delete(); gray.delete(); gridMat.delete();
-      enhanced.delete(); gridThresh.delete(); kernel.delete(); cleaned.delete();
+      src.delete(); gray.delete(); gridMat.delete(); gridThresh.delete();
 
       return { cells, success: true };
     } catch (err) {
@@ -275,38 +265,21 @@ export class ImageProcessor {
       for (let c = 0; c < 9; c++) {
         const x = c * cellW;
         const y = r * cellH;
-        // 15% margin to avoid grid lines
-        const margin = Math.floor(Math.min(cellW, cellH) * 0.15);
+        // 10% margin to avoid grid lines
+        const margin = Math.floor(Math.min(cellW, cellH) * 0.1);
         const rect = new cv.Rect(
           x + margin, y + margin,
           cellW - 2 * margin, cellH - 2 * margin
         );
 
         const cellMat = gridGray.roi(rect);
-
-        // Enhance contrast per cell
-        const enhanced = new cv.Mat();
-        cv.equalizeHist(cellMat, enhanced);
-
-        // Center-crop: middle 60% to avoid edge noise
-        const cropX = Math.floor(enhanced.cols * 0.15);
-        const cropY = Math.floor(enhanced.rows * 0.15);
-        const cropW = enhanced.cols - 2 * cropX;
-        const cropH = enhanced.rows - 2 * cropY;
-        const centerCrop = enhanced.roi(new cv.Rect(cropX, cropY, cropW, cropH));
-
-        // Resize to consistent size
-        const resized = new cv.Mat();
-        cv.resize(centerCrop, resized, new cv.Size(56, 56), 0, 0, cv.INTER_AREA);
-
         const canvas = document.createElement('canvas');
-        cv.imshow(canvas, resized);
+        cv.imshow(canvas, cellMat);
         cells[r][c] = {
           canvas,
           isEmpty: this._isCellEmpty(gridThresh, rect),
         };
-        cellMat.delete(); enhanced.delete();
-        centerCrop.delete(); resized.delete();
+        cellMat.delete();
       }
     }
     return cells;
@@ -316,7 +289,6 @@ export class ImageProcessor {
     const cellMat = threshMat.roi(rect);
     const h = cellMat.rows;
     const w = cellMat.cols;
-    // Check center 50% region
     const cx = Math.floor(w * 0.25);
     const cy = Math.floor(h * 0.25);
     const cw = Math.floor(w * 0.5);
@@ -326,6 +298,6 @@ export class ImageProcessor {
     const total = cw * ch;
     center.delete();
     cellMat.delete();
-    return (nonZero / total) < 0.05; // Less than 5% filled = empty
+    return (nonZero / total) < 0.01; // Less than 1% filled = truly empty
   }
 }
