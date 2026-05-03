@@ -44,9 +44,6 @@ workflows:
             --archive build/App.xcarchive
     artifacts:
       - ios/App/build/**/*.ipa
-    publishing:
-      app_store_connect:
-        auth: integration
 
   android-build:
     name: Android Build
