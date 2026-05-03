@@ -401,6 +401,9 @@ html, body {
   padding: 6px 16px;
   background: var(--surface);
   border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .tool-btn {
@@ -455,6 +458,9 @@ html, body {
   padding-bottom: max(12px, var(--safe-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .num-btn {

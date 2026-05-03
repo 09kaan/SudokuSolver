@@ -98,7 +98,9 @@ export class SudokuGrid {
   _bindNumberPad() {
     const numBtns = document.querySelectorAll('.num-btn');
     numBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         if (!this.selectedCell || !this.editing) return;
         const [r, c] = this.selectedCell;
         if (this.originalCells.has(`${r},${c}`)) return;
