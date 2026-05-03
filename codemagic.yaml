@@ -1,0 +1,75 @@
+workflows:
+  ios-build:
+    name: iOS Build
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.kaan.sudokusolver
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+      node: 18
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+      - name: Copy web assets
+        script: |
+          rm -rf www
+          mkdir -p www/js
+          cp index.html www/
+          cp styles.css www/
+          cp js/*.js www/js/
+      - name: Sync Capacitor
+        script: |
+          npx cap sync ios
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Build iOS
+        script: |
+          cd ios/App
+          xcodebuild build -project App.xcodeproj \
+            -scheme App \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/App.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - ios/App/build/**/*.xcarchive
+      - ios/App/build/**/*.ipa
+
+  android-build:
+    name: Android Build
+    max_build_duration: 30
+    instance_type: linux_x2
+    environment:
+      java: 17
+      node: 18
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+      - name: Copy web assets
+        script: |
+          rm -rf www
+          mkdir -p www/js
+          cp index.html www/
+          cp styles.css www/
+          cp js/*.js www/js/
+      - name: Sync Capacitor
+        script: |
+          npx cap sync android
+      - name: Build Android APK
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - android/app/build/outputs/**/*.apk
