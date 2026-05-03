@@ -41,7 +41,7 @@ workflows:
         script: |
           cd ios/App
           xcode-project build-ipa \
-            --archive build/App.xcarchive
+            --archive-directory build
     artifacts:
       - ios/App/build/**/*.ipa
 
