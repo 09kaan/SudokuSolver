@@ -10,7 +10,7 @@ workflows:
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-      node: 18
+      node: 22
       xcode: latest
     scripts:
       - name: Install dependencies
@@ -51,7 +51,7 @@ workflows:
     instance_type: linux_x2
     environment:
       java: 17
-      node: 18
+      node: 22
     scripts:
       - name: Install dependencies
         script: |
