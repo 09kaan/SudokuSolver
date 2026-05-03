@@ -1,16 +1,18 @@
 /**
  * Sudoku Grid UI — rendering, interaction, editing
+ * Mobile-first: uses fixed number pad at bottom
  */
 export class SudokuGrid {
   constructor(containerId) {
     this.container = document.getElementById(containerId);
     this.grid = Array.from({ length: 9 }, () => Array(9).fill(0));
-    this.originalCells = new Set(); // "r,c" strings
+    this.originalCells = new Set();
     this.selectedCell = null;
     this.editing = false;
-    this.onCellChange = null; // callback
+    this.onCellChange = null;
     this._build();
     this._bindKeyboard();
+    this._bindNumberPad();
   }
 
   /* ── Build DOM ───────────────────────────────── */
@@ -28,7 +30,6 @@ export class SudokuGrid {
         cell.dataset.row = r;
         cell.dataset.col = c;
 
-        // Box borders
         if (c % 3 === 0 && c !== 0) cell.classList.add('box-left');
         if (r % 3 === 0 && r !== 0) cell.classList.add('box-top');
 
@@ -46,6 +47,18 @@ export class SudokuGrid {
         }
         cell.appendChild(candDiv);
 
+        // Notes container
+        const notesDiv = document.createElement('div');
+        notesDiv.className = 'cell-notes';
+        notesDiv.style.display = 'none';
+        for (let n = 1; n <= 9; n++) {
+          const s = document.createElement('span');
+          s.dataset.n = n;
+          s.style.visibility = 'hidden';
+          notesDiv.appendChild(s);
+        }
+        cell.appendChild(notesDiv);
+
         cell.addEventListener('click', (e) => { e.stopPropagation(); this._onCellClick(r, c); });
         this.table.appendChild(cell);
         this.cells[r][c] = cell;
@@ -53,7 +66,6 @@ export class SudokuGrid {
     }
 
     this.container.appendChild(this.table);
-    this._buildNumberPicker();
   }
 
   _bindKeyboard() {
@@ -61,25 +73,16 @@ export class SudokuGrid {
       if (!this.selectedCell) return;
       const [r, c] = this.selectedCell;
 
-      // Number keys 1-9
       if (e.key >= '1' && e.key <= '9' && this.editing && !this.originalCells.has(`${r},${c}`)) {
         e.preventDefault();
         this.setValue(r, c, parseInt(e.key), false);
-        this.picker.classList.add('hidden');
         if (this.onCellChange) this.onCellChange(r, c, parseInt(e.key));
-        // Auto-advance to next cell
-        const nc = c < 8 ? c + 1 : 0;
-        const nr = c < 8 ? r : (r < 8 ? r + 1 : 0);
-        this._onCellClick(nr, nc);
       }
-      // Delete / Backspace to clear
       else if ((e.key === 'Delete' || e.key === 'Backspace') && this.editing && !this.originalCells.has(`${r},${c}`)) {
         e.preventDefault();
         this.setValue(r, c, 0, false);
-        this.picker.classList.add('hidden');
         if (this.onCellChange) this.onCellChange(r, c, 0);
       }
-      // Arrow key navigation
       else if (e.key.startsWith('Arrow')) {
         e.preventDefault();
         let nr = r, nc = c;
@@ -87,49 +90,49 @@ export class SudokuGrid {
         if (e.key === 'ArrowDown' && r < 8) nr++;
         if (e.key === 'ArrowLeft' && c > 0) nc--;
         if (e.key === 'ArrowRight' && c < 8) nc++;
-        this.picker.classList.add('hidden');
         this._onCellClick(nr, nc);
-      }
-      // Escape to close picker
-      else if (e.key === 'Escape') {
-        this.picker.classList.add('hidden');
       }
     });
   }
 
-  _buildNumberPicker() {
-    this.picker = document.createElement('div');
-    this.picker.className = 'number-picker hidden';
-    this.picker.id = 'number-picker';
-    for (let n = 1; n <= 9; n++) {
-      const btn = document.createElement('button');
-      btn.textContent = n;
-      btn.addEventListener('click', (e) => { e.stopPropagation(); this._pickNumber(n); });
-      this.picker.appendChild(btn);
-    }
-    const clr = document.createElement('button');
-    clr.textContent = '✕';
-    clr.className = 'picker-clear';
-    clr.addEventListener('click', (e) => { e.stopPropagation(); this._pickNumber(0); });
-    this.picker.appendChild(clr);
-    document.body.appendChild(this.picker);
-
-    document.addEventListener('click', (e) => {
-      if (!this.picker.contains(e.target)) this.picker.classList.add('hidden');
+  _bindNumberPad() {
+    const numBtns = document.querySelectorAll('.num-btn');
+    numBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!this.selectedCell || !this.editing) return;
+        const [r, c] = this.selectedCell;
+        if (this.originalCells.has(`${r},${c}`)) return;
+        const n = parseInt(btn.dataset.num);
+        this.setValue(r, c, n, false);
+        if (this.onCellChange) this.onCellChange(r, c, n);
+        this._updateCompletedNumbers();
+      });
     });
+
+    // Erase button
+    const eraseBtn = document.getElementById('btn-erase');
+    if (eraseBtn) {
+      eraseBtn.addEventListener('click', () => {
+        if (!this.selectedCell || !this.editing) return;
+        const [r, c] = this.selectedCell;
+        if (this.originalCells.has(`${r},${c}`)) return;
+        this.setValue(r, c, 0, false);
+        if (this.onCellChange) this.onCellChange(r, c, 0);
+      });
+    }
   }
 
   /* ── Public API ──────────────────────────────── */
   loadPuzzle(puzzle, originals) {
     this.grid = puzzle.map(r => [...r]);
     this.originalCells = new Set(originals || []);
-    // If no originals specified, mark all filled cells as original
     if (!originals) {
       for (let r = 0; r < 9; r++)
         for (let c = 0; c < 9; c++)
           if (this.grid[r][c] !== 0) this.originalCells.add(`${r},${c}`);
     }
     this._render();
+    this._updateCompletedNumbers();
   }
 
   getGrid() {
@@ -153,8 +156,12 @@ export class SudokuGrid {
         cell.classList.add('pop-in');
         setTimeout(() => cell.classList.remove('pop-in'), 400);
       }
+      // Hide notes when value is set
+      const notesDiv = cell.querySelector('.cell-notes');
+      if (notesDiv) notesDiv.style.display = 'none';
     }
     cell.querySelector('.cell-candidates').style.display = value ? 'none' : '';
+    this._updateCompletedNumbers();
   }
 
   highlightCells(highlights) {
@@ -181,7 +188,7 @@ export class SudokuGrid {
           candDiv.style.display = 'none';
           continue;
         }
-        candDiv.style.display = '';
+        candDiv.style.display = 'grid';
         const cands = candidates[r][c];
         for (let n = 1; n <= 9; n++) {
           const s = candDiv.querySelector(`[data-n="${n}"]`);
@@ -191,13 +198,27 @@ export class SudokuGrid {
     }
   }
 
-  enableEditing() { this.editing = true; }
-  disableEditing() { this.editing = false; this.picker.classList.add('hidden'); }
+  showUserNotes(r, c, notes) {
+    const cell = this.cells[r][c];
+    const notesDiv = cell.querySelector('.cell-notes');
+    if (!notesDiv) return;
 
-  /**
-   * Lock all currently filled cells as originals
-   * Used after manual entry to distinguish puzzle givens from solved cells
-   */
+    if (notes && notes.size > 0 && this.grid[r][c] === 0) {
+      notesDiv.style.display = 'grid';
+      cell.querySelector('.cell-value').textContent = '';
+      for (let n = 1; n <= 9; n++) {
+        const s = notesDiv.querySelector(`[data-n="${n}"]`);
+        s.textContent = notes.has(n) ? n : '';
+        s.style.visibility = notes.has(n) ? 'visible' : 'hidden';
+      }
+    } else {
+      notesDiv.style.display = 'none';
+    }
+  }
+
+  enableEditing() { this.editing = true; }
+  disableEditing() { this.editing = false; }
+
   lockAsOriginals() {
     this.originalCells = new Set();
     for (let r = 0; r < 9; r++) {
@@ -219,36 +240,28 @@ export class SudokuGrid {
         const valSpan = cell.querySelector('.cell-value');
         const candDiv = cell.querySelector('.cell-candidates');
         valSpan.textContent = v || '';
-        cell.classList.remove('original', 'solved', 'selected');
+        cell.classList.remove('original', 'solved', 'selected', 'error-cell', 'uncertain-cell');
         if (v !== 0) {
           cell.classList.add(this.originalCells.has(`${r},${c}`) ? 'original' : 'solved');
           candDiv.style.display = 'none';
         } else {
-          candDiv.style.display = 'none'; // hidden until showCandidates called
+          candDiv.style.display = 'none';
         }
       }
     }
   }
 
   _onCellClick(r, c) {
-    // Deselect previous
     if (this.selectedCell) {
       const [pr, pc] = this.selectedCell;
       this.cells[pr][pc].classList.remove('selected');
     }
     this.selectedCell = [r, c];
     this.cells[r][c].classList.add('selected');
-
-    // Highlight all cells with the same number
     this._highlightSameNumber(r, c);
-
-    if (this.editing && !this.originalCells.has(`${r},${c}`)) {
-      this._showPicker(r, c);
-    }
   }
 
   _highlightSameNumber(r, c) {
-    // Clear previous same-value highlights
     for (let i = 0; i < 9; i++)
       for (let j = 0; j < 9; j++)
         this.cells[i][j].classList.remove('same-value', 'same-peer');
@@ -256,7 +269,6 @@ export class SudokuGrid {
     const val = this.grid[r][c];
     if (val === 0) return;
 
-    // Highlight all cells with same value
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (i === r && j === c) continue;
@@ -266,7 +278,6 @@ export class SudokuGrid {
       }
     }
 
-    // Highlight peer cells (same row, col, box)
     const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
     for (let i = 0; i < 9; i++) {
       if (i !== c && this.grid[r][i] === 0) this.cells[r][i].classList.add('same-peer');
@@ -278,20 +289,16 @@ export class SudokuGrid {
           this.cells[i][j].classList.add('same-peer');
   }
 
-  _showPicker(r, c) {
-    const cell = this.cells[r][c];
-    const rect = cell.getBoundingClientRect();
-    this.picker.classList.remove('hidden');
-    this.picker.style.top = `${rect.bottom + 8}px`;
-    this.picker.style.left = `${rect.left + rect.width / 2}px`;
-    this._pickerTarget = { row: r, col: c };
-  }
+  _updateCompletedNumbers() {
+    const counts = Array(10).fill(0);
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (this.grid[r][c] > 0) counts[this.grid[r][c]]++;
 
-  _pickNumber(n) {
-    if (!this._pickerTarget) return;
-    const { row, col } = this._pickerTarget;
-    this.setValue(row, col, n, false);
-    this.picker.classList.add('hidden');
-    if (this.onCellChange) this.onCellChange(row, col, n);
+    const numBtns = document.querySelectorAll('.num-btn');
+    numBtns.forEach(btn => {
+      const n = parseInt(btn.dataset.num);
+      btn.classList.toggle('completed', counts[n] >= 9);
+    });
   }
 }

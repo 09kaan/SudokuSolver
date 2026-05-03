@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sudoku Solver — AI-Powered Puzzle Recognition & Step-by-Step Solutions</title>
-  <meta name="description" content="Upload a screenshot of any Sudoku puzzle and get AI-powered recognition with step-by-step solving hints featuring technique explanations.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SudokuAI — Smart Solver</title>
+  <meta name="description" content="AI-powered Sudoku solver with OCR recognition and interactive game modes.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css">
@@ -26,129 +28,149 @@
   <div id="confirm-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <h3>Solve Entire Puzzle?</h3>
-      <p>This will fill in all remaining cells using backtracking. Are you sure you want to reveal the full solution?</p>
+      <p>This will fill in all remaining cells. Are you sure?</p>
       <div class="modal-actions">
         <button id="modal-cancel" class="btn btn-outline">Cancel</button>
-        <button id="modal-confirm" class="btn btn-success">Yes, Solve It</button>
+        <button id="modal-confirm" class="btn btn-primary">Yes, Solve</button>
       </div>
     </div>
   </div>
 
   <!-- ── Toast ────────────────────────────────── -->
-  <div id="toast" class="toast toast-info hidden">
+  <div id="toast" class="toast hidden">
     <span id="toast-text"></span>
     <button id="toast-close" class="toast-close">✕</button>
   </div>
 
-  <!-- ── Header ───────────────────────────────── -->
-  <header class="header">
-    <h1>🧩 Sudoku Solver & Game</h1>
-    <p>Play, solve, or learn — your all-in-one Sudoku companion</p>
-  </header>
+  <!-- ── Home Screen ──────────────────────────── -->
+  <div id="home-screen" class="screen home-screen">
+    <div class="home-content">
+      <div class="home-logo">🧩</div>
+      <h1 class="home-title">SudokuAI</h1>
+      <p class="home-subtitle">Smart Solver & Game</p>
 
-  <!-- ── Main Container ──────────────────────── -->
-  <main class="app-container">
-
-    <!-- Upload Section -->
-    <section id="upload-section" class="upload-section">
-      <div id="drop-zone" class="drop-zone card">
-        <div class="drop-zone-icon">📷</div>
-        <h3>Drop your Sudoku screenshot here</h3>
-        <p>or click to browse files</p>
-        <p class="paste-hint">💡 You can also paste an image with Ctrl+V</p>
-        <input type="file" id="file-input" accept="image/*" style="display:none">
+      <div class="home-section">
+        <h2 class="home-section-title">Play a Game</h2>
+        <div class="difficulty-grid">
+          <button class="diff-btn diff-easy" data-difficulty="easy">
+            <span class="diff-icon">🟢</span>
+            <span class="diff-label">Easy</span>
+          </button>
+          <button class="diff-btn diff-medium" data-difficulty="medium">
+            <span class="diff-icon">🟡</span>
+            <span class="diff-label">Medium</span>
+          </button>
+          <button class="diff-btn diff-hard" data-difficulty="hard">
+            <span class="diff-icon">🟠</span>
+            <span class="diff-label">Hard</span>
+          </button>
+          <button class="diff-btn diff-expert" data-difficulty="expert">
+            <span class="diff-icon">🔴</span>
+            <span class="diff-label">Expert</span>
+          </button>
+        </div>
       </div>
 
-      <span class="or-divider">— or —</span>
+      <div class="home-divider"><span>or</span></div>
 
-      <button id="btn-manual-entry" class="btn btn-outline">
-        ✏️ Enter Puzzle Manually
-      </button>
-
-      <div class="or-divider">— play a game —</div>
-
-      <div class="difficulty-buttons">
-        <button class="btn btn-diff btn-diff-easy" data-difficulty="easy">🟢 Easy</button>
-        <button class="btn btn-diff btn-diff-medium" data-difficulty="medium">🟡 Medium</button>
-        <button class="btn btn-diff btn-diff-hard" data-difficulty="hard">🟠 Hard</button>
-        <button class="btn btn-diff btn-diff-expert" data-difficulty="expert">🔴 Expert</button>
+      <div class="home-section">
+        <h2 class="home-section-title">Solve a Puzzle</h2>
+        <div class="solve-buttons">
+          <button id="btn-scan" class="action-btn">
+            <span class="action-icon">📷</span>
+            <span class="action-label">Scan Image</span>
+          </button>
+          <button id="btn-manual-entry" class="action-btn">
+            <span class="action-icon">✏️</span>
+            <span class="action-label">Enter Manually</span>
+          </button>
+        </div>
+        <input type="file" id="file-input" accept="image/*" style="display:none">
       </div>
 
       <div id="preview-area" class="preview-area hidden">
         <img id="preview-img" alt="Uploaded puzzle preview">
-        <p>Uploaded image preview</p>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <!-- Puzzle Section -->
-    <section id="puzzle-section" class="puzzle-layout hidden">
+  <!-- ── Game Screen ──────────────────────────── -->
+  <div id="game-screen" class="screen game-screen hidden">
 
-      <!-- Grid -->
-      <div id="grid-container" class="grid-wrapper"></div>
-
-      <!-- Side Panel -->
-      <div class="side-panel">
-
-        <!-- Game Info Bar -->
-        <div id="game-bar" class="card game-bar hidden">
-          <div class="game-bar-row">
-            <span id="game-difficulty" class="game-difficulty"></span>
-            <span id="game-timer" class="game-timer">⏱ 00:00</span>
-          </div>
-          <div class="game-bar-row">
-            <span id="game-errors" class="game-errors">❌ 0 errors</span>
-            <span id="game-progress" class="game-progress">0 / 81</span>
-          </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="card">
-          <div class="controls">
-            <button id="btn-undo" class="btn btn-outline" disabled title="Undo last move">
-              ↩️ Undo
-            </button>
-            <button id="btn-next-step" class="btn btn-primary" disabled>
-              💡 Hint
-            </button>
-            <button id="btn-solve-all" class="btn btn-success" disabled>
-              ✅ Solve All
-            </button>
-            <button id="btn-check" class="btn btn-outline" disabled title="Check for errors">
-              🔍 Check
-            </button>
-            <button id="btn-candidates" class="btn btn-outline" disabled>
-              🔢 Notes
-            </button>
-            <button id="btn-edit-toggle" class="btn btn-outline" disabled>
-              ✏️ Edit
-            </button>
-            <button id="btn-clear" class="btn btn-outline" disabled>
-              🗑️ Clear
-            </button>
-            <button id="btn-new" class="btn btn-danger">
-              🔄 New
-            </button>
-          </div>
-        </div>
-
-        <!-- Hint Panel -->
-        <div class="card hint-panel">
-          <h3>💡 Solving Hints</h3>
-          <div id="hint-content" class="hint-content">
-            <p class="hint-empty">Click <strong>Next Step</strong> to get a solving hint with explanation.</p>
-          </div>
-          <div class="hint-nav">
-            <span id="hint-counter" class="hint-counter"></span>
-            <div class="hint-nav-btns">
-              <button id="btn-hint-prev" title="Previous hint">◀</button>
-              <button id="btn-hint-next" title="Next hint">▶</button>
-            </div>
-          </div>
-        </div>
-
+    <!-- Top Bar -->
+    <div class="game-topbar">
+      <button id="btn-back" class="topbar-btn">← Back</button>
+      <div id="game-bar" class="game-info">
+        <span id="game-difficulty" class="game-badge"></span>
+        <span id="game-timer" class="game-timer">00:00</span>
+        <span id="game-errors" class="game-stat">0 ❌</span>
       </div>
-    </section>
-  </main>
+      <button id="btn-new" class="topbar-btn">New</button>
+    </div>
+
+    <!-- Grid -->
+    <div id="grid-container" class="grid-wrapper"></div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+      <button id="btn-undo" class="tool-btn" disabled>
+        <span class="tool-icon">↩</span>
+        <span class="tool-label">Undo</span>
+      </button>
+      <button id="btn-erase" class="tool-btn" disabled>
+        <span class="tool-icon">⌫</span>
+        <span class="tool-label">Erase</span>
+      </button>
+      <button id="btn-candidates" class="tool-btn" disabled>
+        <span class="tool-icon">✎</span>
+        <span class="tool-label">Notes</span>
+      </button>
+      <button id="btn-next-step" class="tool-btn" disabled>
+        <span class="tool-icon">💡</span>
+        <span class="tool-label">Hint</span>
+      </button>
+      <button id="btn-check" class="tool-btn" disabled>
+        <span class="tool-icon">✓</span>
+        <span class="tool-label">Check</span>
+      </button>
+    </div>
+
+    <!-- Number Pad -->
+    <div id="number-pad" class="number-pad">
+      <button class="num-btn" data-num="1">1</button>
+      <button class="num-btn" data-num="2">2</button>
+      <button class="num-btn" data-num="3">3</button>
+      <button class="num-btn" data-num="4">4</button>
+      <button class="num-btn" data-num="5">5</button>
+      <button class="num-btn" data-num="6">6</button>
+      <button class="num-btn" data-num="7">7</button>
+      <button class="num-btn" data-num="8">8</button>
+      <button class="num-btn" data-num="9">9</button>
+    </div>
+
+    <!-- Hidden buttons for compatibility -->
+    <button id="btn-solve-all" class="hidden" disabled></button>
+    <button id="btn-edit-toggle" class="hidden" disabled></button>
+    <button id="btn-clear" class="hidden" disabled></button>
+
+    <!-- Hint Panel (collapsible) -->
+    <div id="hint-panel" class="hint-panel hidden">
+      <div class="hint-header">
+        <span>💡 Hint</span>
+        <button id="btn-hint-close" class="hint-close">✕</button>
+      </div>
+      <div id="hint-content" class="hint-content">
+        <p class="hint-empty">Tap <strong>Hint</strong> for solving tips.</p>
+      </div>
+      <div class="hint-nav">
+        <span id="hint-counter" class="hint-counter"></span>
+        <div class="hint-nav-btns">
+          <button id="btn-hint-prev">◀</button>
+          <button id="btn-hint-next">▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── External Libraries ───────────────────── -->
   <script async src="https://docs.opencv.org/4.9.0/opencv.js" onload="console.log('OpenCV.js loaded')"></script>

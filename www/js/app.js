@@ -41,24 +41,10 @@ class App {
 
   /* ── Event Binding ──────────────────────────── */
   _bindEvents() {
-    // Upload area
-    const dropZone = document.getElementById('drop-zone');
+    // Scan button
+    const scanBtn = document.getElementById('btn-scan');
     const fileInput = document.getElementById('file-input');
-
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('drag-over');
-    });
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      const file = e.dataTransfer.files[0];
-      if (file) this._handleImage(file);
-    });
-    dropZone.addEventListener('click', () => fileInput.click());
+    scanBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) this._handleImage(file);
@@ -82,6 +68,7 @@ class App {
     document.getElementById('btn-solve-all').addEventListener('click', () => this._solveAll());
     document.getElementById('btn-clear').addEventListener('click', () => this._clearSolved());
     document.getElementById('btn-new').addEventListener('click', () => this._newPuzzle());
+    document.getElementById('btn-back').addEventListener('click', () => this._newPuzzle());
     document.getElementById('btn-edit-toggle').addEventListener('click', () => this._toggleEdit());
     document.getElementById('btn-manual-entry').addEventListener('click', () => this._manualEntry());
     document.getElementById('btn-candidates').addEventListener('click', () => this._toggleCandidates());
@@ -89,13 +76,16 @@ class App {
     document.getElementById('btn-check').addEventListener('click', () => this._checkErrors());
 
     // Difficulty buttons
-    document.querySelectorAll('.btn-diff').forEach(btn => {
+    document.querySelectorAll('.diff-btn').forEach(btn => {
       btn.addEventListener('click', () => this._startGame(btn.dataset.difficulty));
     });
 
     // Hint navigation
     document.getElementById('btn-hint-prev').addEventListener('click', () => this._navHint(-1));
     document.getElementById('btn-hint-next').addEventListener('click', () => this._navHint(1));
+    document.getElementById('btn-hint-close').addEventListener('click', () => {
+      document.getElementById('hint-panel').classList.add('hidden');
+    });
 
     // Confirm modal
     document.getElementById('modal-confirm').addEventListener('click', () => this._confirmSolve());
@@ -214,7 +204,7 @@ class App {
     this.hintIndex = -1;
     this.solver.resetEliminations();
     this._updateUI();
-    this._showSection('puzzle-section');
+    this._showScreen('game');
   }
 
   _manualEntry() {
@@ -267,6 +257,7 @@ class App {
     this.hintHistory.push(step);
     this.hintIndex = this.hintHistory.length - 1;
     this._renderHint(step);
+    document.getElementById('hint-panel').classList.remove('hidden');
     this._updateUI();
 
     // Check completion
@@ -345,16 +336,16 @@ class App {
     this.gridUI.clearHighlights();
     this._renderHint(null);
     this._updateUI();
-    this._showSection('upload-section');
+    this._showScreen('home');
     document.getElementById('preview-area').classList.add('hidden');
     document.getElementById('file-input').value = '';
+    document.getElementById('hint-panel').classList.add('hidden');
     // Reset game state
     this._stopTimer();
     this.gameMode = false;
     this.solution = null;
     this.undoStack = [];
     this.errorCount = 0;
-    document.getElementById('game-bar').classList.add('hidden');
   }
 
   /* ── Game Mode ─────────────────────────────── */
@@ -398,14 +389,13 @@ class App {
     this._loadPuzzle(puzzle);
     this.gridUI.enableEditing();
 
-    // Show game bar
-    const labels = { easy: '🟢 Easy', medium: '🟡 Medium', hard: '🟠 Hard', expert: '🔴 Expert' };
+    // Show game info
+    const labels = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert' };
     document.getElementById('game-difficulty').textContent = labels[difficulty] || difficulty;
-    document.getElementById('game-bar').classList.remove('hidden');
 
     this._startTimer();
     this._updateGameBar();
-    this._showToast('Game started! Fill in the empty cells.', 'success');
+    this._showToast('Game started!', 'success');
   }
 
   _onPlayerMove(r, c, val) {
@@ -551,7 +541,7 @@ class App {
   _updateTimerDisplay() {
     const mins = Math.floor(this.timerSeconds / 60);
     const secs = this.timerSeconds % 60;
-    document.getElementById('game-timer').textContent = `⏱ ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    document.getElementById('game-timer').textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
   _updateGameBar() {
@@ -560,8 +550,7 @@ class App {
     for (let r = 0; r < 9; r++)
       for (let c = 0; c < 9; c++)
         if (grid[r][c] !== 0) filled++;
-    document.getElementById('game-progress').textContent = `${filled} / 81`;
-    document.getElementById('game-errors').textContent = `❌ ${this.errorCount} errors`;
+    document.getElementById('game-errors').textContent = `${this.errorCount} ❌`;
   }
 
   _toggleEdit() {
@@ -581,20 +570,13 @@ class App {
   _toggleCandidates() {
     const btn = document.getElementById('btn-candidates');
     if (this.gameMode) {
-      // Game mode: toggle notes/pencil mark mode
       this.notesMode = !this.notesMode;
+      btn.classList.toggle('active', this.notesMode);
       if (this.notesMode) {
-        btn.classList.add('active');
-        btn.textContent = '✏️ Notes ON';
-        this._showToast('Notes mode ON — type numbers to add/remove pencil marks', 'info');
-      } else {
-        btn.classList.remove('active');
-        btn.textContent = '🔢 Notes';
+        this._showToast('Notes mode ON', 'info');
       }
-      // Show current user notes
       this.gridUI.showCandidates(this.userNotes);
     } else {
-      // Solver mode: show auto-calculated candidates
       if (btn.classList.contains('active')) {
         btn.classList.remove('active');
         this.gridUI._render();
@@ -666,16 +648,17 @@ class App {
     if (step.highlights) this.gridUI.highlightCells(step.highlights);
   }
 
-  /* ── Sections ───────────────────────────────── */
-  _showSection(id) {
-    document.getElementById('upload-section').classList.toggle('hidden', id !== 'upload-section');
-    document.getElementById('puzzle-section').classList.toggle('hidden', id !== 'puzzle-section');
+  /* ── Screens ───────────────────────────────── */
+  _showScreen(name) {
+    document.getElementById('home-screen').classList.toggle('hidden', name !== 'home');
+    document.getElementById('game-screen').classList.toggle('hidden', name !== 'game');
   }
 
   _updateUI() {
-    const btns = ['btn-next-step', 'btn-solve-all', 'btn-clear', 'btn-edit-toggle', 'btn-candidates', 'btn-check'];
+    const btns = ['btn-next-step', 'btn-solve-all', 'btn-clear', 'btn-edit-toggle', 'btn-candidates', 'btn-check', 'btn-erase'];
     btns.forEach(id => {
-      document.getElementById(id).disabled = !this.puzzleLoaded;
+      const el = document.getElementById(id);
+      if (el) el.disabled = !this.puzzleLoaded;
     });
     document.getElementById('btn-undo').disabled = this.undoStack.length === 0;
   }
@@ -702,7 +685,7 @@ class App {
   _showToast(msg, type = 'info') {
     const toast = document.getElementById('toast');
     const text = document.getElementById('toast-text');
-    toast.className = `toast toast-${type}`;
+    toast.className = 'toast';
     text.textContent = msg;
     toast.classList.remove('hidden');
     clearTimeout(this._toastTimer);
