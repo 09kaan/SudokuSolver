@@ -3,6 +3,8 @@ workflows:
     name: iOS Build
     max_build_duration: 30
     instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic Key
     environment:
       ios_signing:
         distribution_type: app_store
@@ -46,6 +48,10 @@ workflows:
             --archive-directory build
     artifacts:
       - ios/App/build/**/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
 
   android-build:
     name: Android Build
