@@ -30,6 +30,10 @@ workflows:
       - name: Set up code signing
         script: |
           xcode-project use-profiles
+      - name: Increment build number
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($PROJECT_BUILD_NUMBER + 1))
       - name: Build iOS
         script: |
           cd ios/App
