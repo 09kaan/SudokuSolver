@@ -3,12 +3,13 @@ workflows:
     name: iOS Build
     max_build_duration: 30
     instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic
     environment:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.kaan.sudokusolver
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
       node: 22
       xcode: latest
@@ -32,18 +33,27 @@ workflows:
       - name: Build iOS
         script: |
           cd ios/App
-          xcodebuild build -project App.xcodeproj \
-            -scheme App \
+          xcodebuild -project App.xcodeproj \
+            -scheme "$XCODE_SCHEME" \
             -sdk iphoneos \
             -configuration Release \
             -archivePath build/App.xcarchive \
             archive \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            DEVELOPMENT_TEAM="$(xcode-project detect-signing --project App.xcodeproj --scheme App | grep 'team_id' | head -1 | awk '{print $2}')" \
+            CODE_SIGN_STYLE=Manual
+      - name: Export IPA
+        script: |
+          cd ios/App
+          xcode-project build-ipa \
+            --archive build/App.xcarchive \
+            --export-options-plist /tmp/export_options.plist
     artifacts:
-      - ios/App/build/**/*.xcarchive
       - ios/App/build/**/*.ipa
+      - ios/App/build/**/*.xcarchive
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
 
   android-build:
     name: Android Build
