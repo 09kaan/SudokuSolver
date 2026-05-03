@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Solver — AI-Powered Puzzle Recognition & Step-by-Step Solutions</title>
+  <meta name="description" content="Upload a screenshot of any Sudoku puzzle and get AI-powered recognition with step-by-step solving hints featuring technique explanations.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ── Loading Overlay ──────────────────────── -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="loading-spinner"></div>
+    <p id="loading-text" class="loading-text">Loading...</p>
+  </div>
+
+  <!-- ── Confirm Modal ────────────────────────── -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3>Solve Entire Puzzle?</h3>
+      <p>This will fill in all remaining cells using backtracking. Are you sure you want to reveal the full solution?</p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-outline">Cancel</button>
+        <button id="modal-confirm" class="btn btn-success">Yes, Solve It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ────────────────────────────────── -->
+  <div id="toast" class="toast toast-info hidden">
+    <span id="toast-text"></span>
+    <button id="toast-close" class="toast-close">✕</button>
+  </div>
+
+  <!-- ── Header ───────────────────────────────── -->
+  <header class="header">
+    <h1>🧩 Sudoku Solver & Game</h1>
+    <p>Play, solve, or learn — your all-in-one Sudoku companion</p>
+  </header>
+
+  <!-- ── Main Container ──────────────────────── -->
+  <main class="app-container">
+
+    <!-- Upload Section -->
+    <section id="upload-section" class="upload-section">
+      <div id="drop-zone" class="drop-zone card">
+        <div class="drop-zone-icon">📷</div>
+        <h3>Drop your Sudoku screenshot here</h3>
+        <p>or click to browse files</p>
+        <p class="paste-hint">💡 You can also paste an image with Ctrl+V</p>
+        <input type="file" id="file-input" accept="image/*" style="display:none">
+      </div>
+
+      <span class="or-divider">— or —</span>
+
+      <button id="btn-manual-entry" class="btn btn-outline">
+        ✏️ Enter Puzzle Manually
+      </button>
+
+      <div class="or-divider">— play a game —</div>
+
+      <div class="difficulty-buttons">
+        <button class="btn btn-diff btn-diff-easy" data-difficulty="easy">🟢 Easy</button>
+        <button class="btn btn-diff btn-diff-medium" data-difficulty="medium">🟡 Medium</button>
+        <button class="btn btn-diff btn-diff-hard" data-difficulty="hard">🟠 Hard</button>
+        <button class="btn btn-diff btn-diff-expert" data-difficulty="expert">🔴 Expert</button>
+      </div>
+
+      <div id="preview-area" class="preview-area hidden">
+        <img id="preview-img" alt="Uploaded puzzle preview">
+        <p>Uploaded image preview</p>
+      </div>
+    </section>
+
+    <!-- Puzzle Section -->
+    <section id="puzzle-section" class="puzzle-layout hidden">
+
+      <!-- Grid -->
+      <div id="grid-container" class="grid-wrapper"></div>
+
+      <!-- Side Panel -->
+      <div class="side-panel">
+
+        <!-- Game Info Bar -->
+        <div id="game-bar" class="card game-bar hidden">
+          <div class="game-bar-row">
+            <span id="game-difficulty" class="game-difficulty"></span>
+            <span id="game-timer" class="game-timer">⏱ 00:00</span>
+          </div>
+          <div class="game-bar-row">
+            <span id="game-errors" class="game-errors">❌ 0 errors</span>
+            <span id="game-progress" class="game-progress">0 / 81</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card">
+          <div class="controls">
+            <button id="btn-undo" class="btn btn-outline" disabled title="Undo last move">
+              ↩️ Undo
+            </button>
+            <button id="btn-next-step" class="btn btn-primary" disabled>
+              💡 Hint
+            </button>
+            <button id="btn-solve-all" class="btn btn-success" disabled>
+              ✅ Solve All
+            </button>
+            <button id="btn-check" class="btn btn-outline" disabled title="Check for errors">
+              🔍 Check
+            </button>
+            <button id="btn-candidates" class="btn btn-outline" disabled>
+              🔢 Notes
+            </button>
+            <button id="btn-edit-toggle" class="btn btn-outline" disabled>
+              ✏️ Edit
+            </button>
+            <button id="btn-clear" class="btn btn-outline" disabled>
+              🗑️ Clear
+            </button>
+            <button id="btn-new" class="btn btn-danger">
+              🔄 New
+            </button>
+          </div>
+        </div>
+
+        <!-- Hint Panel -->
+        <div class="card hint-panel">
+          <h3>💡 Solving Hints</h3>
+          <div id="hint-content" class="hint-content">
+            <p class="hint-empty">Click <strong>Next Step</strong> to get a solving hint with explanation.</p>
+          </div>
+          <div class="hint-nav">
+            <span id="hint-counter" class="hint-counter"></span>
+            <div class="hint-nav-btns">
+              <button id="btn-hint-prev" title="Previous hint">◀</button>
+              <button id="btn-hint-next" title="Next hint">▶</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ── External Libraries ───────────────────── -->
+  <script async src="https://docs.opencv.org/4.9.0/opencv.js" onload="console.log('OpenCV.js loaded')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <!-- ── App ──────────────────────────────────── -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

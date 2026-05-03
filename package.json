@@ -1,0 +1,23 @@
+{
+  "name": "sudokusolver",
+  "version": "1.0.0",
+  "description": "AI-Powered Sudoku Solver & Game",
+  "scripts": {
+    "build": "xcopy /E /Y /I index.html www\\ && xcopy /E /Y /I styles.css www\\ && xcopy /E /Y /I js www\\js\\",
+    "sync": "npx cap sync",
+    "android": "npx cap open android",
+    "ios": "npx cap open ios"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/09kaan/sudokusolver.git"
+  },
+  "author": "Kaan",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/ios": "^8.3.1"
+  }
+}

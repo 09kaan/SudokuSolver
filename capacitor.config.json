@@ -1,0 +1,8 @@
+{
+  "appId": "com.kaan.sudokusolver",
+  "appName": "Sudoku Solver",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
