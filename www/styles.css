@@ -13,7 +13,7 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --border: #e5e7eb;
-  --cell-size: min(10.5vw, 52px);
+  --cell-size: min(10.5vw, 48px, calc((100vh - 220px) / 9.5));
   --grid-gap: 1px;
   --radius: 12px;
   --shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -253,6 +253,7 @@ html, body {
   flex: 1;
   padding: 8px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .sudoku-grid {
