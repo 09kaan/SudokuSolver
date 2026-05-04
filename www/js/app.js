@@ -83,7 +83,15 @@ class App {
     // Hint navigation
     document.getElementById('btn-hint-prev').addEventListener('click', () => this._navHint(-1));
     document.getElementById('btn-hint-next').addEventListener('click', () => this._navHint(1));
-    document.getElementById('btn-hint-close').addEventListener('click', () => {
+    document.getElementById('btn-hint-close').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('hint-panel').classList.add('hidden');
+      this.gridUI.clearHighlights();
+    });
+    document.getElementById('btn-hint-close').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       document.getElementById('hint-panel').classList.add('hidden');
       this.gridUI.clearHighlights();
     });
