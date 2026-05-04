@@ -155,7 +155,7 @@ export class SudokuGrid {
     const valSpan = cell.querySelector('.cell-value');
     valSpan.textContent = value || '';
 
-    cell.classList.remove('original', 'solved');
+    cell.classList.remove('original', 'solved', 'error-cell');
     if (value !== 0) {
       cell.classList.add('solved');
       if (animate) {

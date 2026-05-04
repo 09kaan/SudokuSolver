@@ -13,7 +13,7 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --border: #e5e7eb;
-  --cell-size: min(10.5vw, 48px, calc((100vh - 220px) / 9.5));
+  --cell-size: min(10vw, 46px, calc((100vh - 220px) / 9.5));
   --grid-gap: 1px;
   --radius: 12px;
   --shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -197,7 +197,7 @@ html, body {
   justify-content: space-between;
   padding: 8px 12px;
   padding-top: max(8px, env(safe-area-inset-top));
-  background: var(--surface);
+  background: transparent;
 }
 
 .topbar-btn {
@@ -226,6 +226,19 @@ html, body {
   background: var(--primary-light);
   color: var(--primary);
   letter-spacing: 0.5px;
+}
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.game-timer {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
 }
 
 /* ── Grid ─────────────────────────────────────── */
