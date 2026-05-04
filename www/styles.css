@@ -417,7 +417,7 @@ html, body {
   display: flex;
   justify-content: space-around;
   padding: 8px 8px 4px;
-  background: var(--surface);
+  background: transparent;
   position: relative;
   z-index: 10;
   flex-shrink: 0;
@@ -473,7 +473,7 @@ html, body {
   gap: 2px;
   padding: 6px 6px;
   padding-bottom: max(10px, var(--safe-bottom));
-  background: var(--surface);
+  background: transparent;
   position: relative;
   z-index: 10;
   flex-shrink: 0;
@@ -488,7 +488,7 @@ html, body {
   font-size: 30px;
   font-weight: 500;
   color: var(--primary);
-  background: var(--surface);
+  background: transparent;
   border: none;
   border-radius: 12px;
   cursor: pointer;
