@@ -83,6 +83,10 @@ class App {
     // Hint navigation
     document.getElementById('btn-hint-prev').addEventListener('click', () => this._navHint(-1));
     document.getElementById('btn-hint-next').addEventListener('click', () => this._navHint(1));
+    document.getElementById('btn-hint-close').addEventListener('click', () => {
+      document.getElementById('hint-panel').classList.add('hidden');
+      this.gridUI.clearHighlights();
+    });
 
     // Confirm modal
     document.getElementById('modal-confirm').addEventListener('click', () => this._confirmSolve());
@@ -251,13 +255,27 @@ class App {
   _breakIntoSubSteps(step) {
     const { type, cell, value, highlights } = step;
 
+    const badges = {
+      naked_single: { label: 'Naked Single', cls: 'badge-green' },
+      hidden_single: { label: 'Hidden Single', cls: 'badge-purple' },
+      naked_pair: { label: 'Naked Pair', cls: 'badge-orange' },
+      hidden_pair: { label: 'Hidden Pair', cls: 'badge-purple' },
+      pointing_pair: { label: 'Pointing Pair', cls: 'badge-orange' },
+      box_line_reduction: { label: 'Box/Line', cls: 'badge-blue' },
+      naked_triple: { label: 'Naked Triple', cls: 'badge-orange' },
+      x_wing: { label: 'X-Wing', cls: 'badge-red' },
+      xy_wing: { label: 'XY-Wing', cls: 'badge-red' },
+      backtrack: { label: 'Advanced', cls: 'badge-blue' },
+    };
+    const badge = badges[type] || badges.backtrack;
+
     if (type === 'naked_single' && cell) {
       const cellHL = [{ row: cell.row, col: cell.col, color: 'info' }];
       const peerHL = highlights ? highlights.filter(h => h.color !== 'success') : [];
       return [
-        { text: `Look at <strong>R${cell.row+1}C${cell.col+1}</strong>. What number can go here?`, highlights: cellHL },
-        { text: `All other numbers are already in its row, column, or box — only <strong>${value}</strong> is left.`, highlights: [...cellHL, ...peerHL] },
-        { text: `Place <strong>${value}</strong> at R${cell.row+1}C${cell.col+1}! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+        { text: `Look at <strong>R${cell.row+1}C${cell.col+1}</strong>. What number can go here?`, highlights: cellHL, badge },
+        { text: `All other numbers are already in its row, column, or box \u2014 only <strong>${value}</strong> is left.`, highlights: [...cellHL, ...peerHL], badge },
+        { text: `Place <strong>${value}</strong> at R${cell.row+1}C${cell.col+1}! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
@@ -266,29 +284,28 @@ class App {
       const unitName = unitMatch ? unitMatch[1] : 'this unit';
       const blockHL = highlights ? highlights.filter(h => h.color === 'info' || h.color === 'warning') : [];
       return [
-        { text: `Look at <strong>${unitName}</strong>. Where can <strong>${value}</strong> go?`, highlights: [...blockHL, { row: cell.row, col: cell.col, color: 'info' }] },
-        { text: `Other cells are blocked by existing <strong>${value}</strong>s nearby.`, highlights: highlights || [] },
-        { text: `Only place for <strong>${value}</strong> is <strong>R${cell.row+1}C${cell.col+1}</strong>! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+        { text: `Look at <strong>${unitName}</strong>. Where can <strong>${value}</strong> go?`, highlights: [...blockHL, { row: cell.row, col: cell.col, color: 'info' }], badge },
+        { text: `Other cells are blocked by existing <strong>${value}</strong>s nearby.`, highlights: highlights || [], badge },
+        { text: `Only place for <strong>${value}</strong> is <strong>R${cell.row+1}C${cell.col+1}</strong>! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
     if ((type === 'pointing_pair' || type === 'box_line_reduction') && highlights) {
-      const label = type === 'pointing_pair' ? 'Pointing Pair' : 'Box/Line Reduction';
       const primaryHL = highlights.filter(h => h.color === 'primary');
       return [
-        { text: `<strong>${label}</strong> found! Look at the highlighted cells.`, highlights: primaryHL },
-        { text: step.explanation, highlights, applyElimination: true },
+        { text: `Look at the highlighted cells in the box.`, highlights: primaryHL, badge },
+        { text: step.explanation, highlights, applyElimination: true, badge },
       ];
     }
 
     if (type === 'backtrack' && cell) {
       return [
-        { text: `This requires advanced logic. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }] },
-        { text: `The answer is <strong>${value}</strong>! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+        { text: `This requires advanced logic. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
+        { text: `The answer is <strong>${value}</strong>! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
-    return [{ text: step.explanation, highlights: highlights || [], placeValue: !!(cell && value) }];
+    return [{ text: step.explanation, highlights: highlights || [], placeValue: !!(cell && value), badge }];
   }
 
   _renderSubStep() {
@@ -297,6 +314,13 @@ class App {
     const idx = this.currentSubStepIndex;
 
     document.getElementById('hint-content').innerHTML = sub.text;
+
+    // Badge
+    const badgeEl = document.getElementById('hint-badge');
+    if (sub.badge) {
+      badgeEl.textContent = sub.badge.label;
+      badgeEl.className = 'hint-badge ' + sub.badge.cls;
+    }
 
     // Dots
     const dots = document.getElementById('hint-dots');
