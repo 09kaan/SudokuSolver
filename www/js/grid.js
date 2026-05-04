@@ -278,6 +278,7 @@ export class SudokuGrid {
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
         if (i === r && j === c) continue;
+        if (this.cells[i][j].classList.contains('error-cell')) continue;
         if (this.grid[i][j] === val) {
           this.cells[i][j].classList.add('same-value');
         }
@@ -286,12 +287,12 @@ export class SudokuGrid {
 
     const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
     for (let i = 0; i < 9; i++) {
-      if (i !== c) this.cells[r][i].classList.add('same-peer');
-      if (i !== r) this.cells[i][c].classList.add('same-peer');
+      if (i !== c && !this.cells[r][i].classList.contains('error-cell')) this.cells[r][i].classList.add('same-peer');
+      if (i !== r && !this.cells[i][c].classList.contains('error-cell')) this.cells[i][c].classList.add('same-peer');
     }
     for (let i = br; i < br + 3; i++)
       for (let j = bc; j < bc + 3; j++)
-        if (!(i === r && j === c))
+        if (!(i === r && j === c) && !this.cells[i][j].classList.contains('error-cell'))
           this.cells[i][j].classList.add('same-peer');
   }
 
