@@ -111,6 +111,20 @@
     <!-- Grid -->
     <div id="grid-container" class="grid-wrapper"></div>
 
+    <!-- Hint Panel (inline, between grid and controls) -->
+    <div id="hint-panel" class="hint-panel hidden">
+      <div class="hint-body">
+        <p id="hint-content" class="hint-text"></p>
+      </div>
+      <div class="hint-footer">
+        <div class="hint-dots" id="hint-dots"></div>
+        <div class="hint-nav-btns">
+          <button id="btn-hint-prev" class="hint-arrow">‹</button>
+          <button id="btn-hint-next" class="hint-arrow">›</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Action Buttons -->
     <div class="action-bar">
       <button id="btn-undo" class="tool-btn" disabled>
@@ -152,24 +166,7 @@
     <button id="btn-solve-all" class="hidden" disabled></button>
     <button id="btn-edit-toggle" class="hidden" disabled></button>
     <button id="btn-clear" class="hidden" disabled></button>
-
-    <!-- Hint Panel (collapsible) -->
-    <div id="hint-panel" class="hint-panel hidden">
-      <div class="hint-header">
-        <span>💡 Hint</span>
-        <button id="btn-hint-close" class="hint-close">✕</button>
-      </div>
-      <div id="hint-content" class="hint-content">
-        <p class="hint-empty">Tap <strong>Hint</strong> for solving tips.</p>
-      </div>
-      <div class="hint-nav">
-        <span id="hint-counter" class="hint-counter"></span>
-        <div class="hint-nav-btns">
-          <button id="btn-hint-prev">◀</button>
-          <button id="btn-hint-next">▶</button>
-        </div>
-      </div>
-    </div>
+    <span id="hint-counter" class="hidden"></span>
   </div>
 
   <!-- ── External Libraries ───────────────────── -->

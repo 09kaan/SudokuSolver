@@ -83,9 +83,6 @@ class App {
     // Hint navigation
     document.getElementById('btn-hint-prev').addEventListener('click', () => this._navHint(-1));
     document.getElementById('btn-hint-next').addEventListener('click', () => this._navHint(1));
-    document.getElementById('btn-hint-close').addEventListener('click', () => {
-      document.getElementById('hint-panel').classList.add('hidden');
-    });
 
     // Confirm modal
     document.getElementById('modal-confirm').addEventListener('click', () => this._confirmSolve());
@@ -231,7 +228,7 @@ class App {
     const step = this.solver.getNextStep(grid);
 
     if (!step) {
-      this._showToast('No valid next step found. The puzzle might be invalid.', 'error');
+      this._showToast('No valid next step found.', 'error');
       return;
     }
 
@@ -240,32 +237,102 @@ class App {
       return;
     }
 
-    // Apply the step
-    if (step.cell && step.value) {
-      this.gridUI.setValue(step.cell.row, step.cell.col, step.value);
-    }
+    // Break into sub-steps (sudoku.com style)
+    this.currentSubSteps = this._breakIntoSubSteps(step);
+    this.currentSubStepIndex = 0;
+    this.pendingStep = step;
+    this._valuePlaced = false;
 
-    // Always refresh candidates after any step (value placed or elimination)
-    this._showCandidatesWithEliminations();
-
-    // Highlight
-    if (step.highlights) {
-      this.gridUI.highlightCells(step.highlights);
-    }
-
-    // Save to history
-    this.hintHistory.push(step);
-    this.hintIndex = this.hintHistory.length - 1;
-    this._renderHint(step);
     document.getElementById('hint-panel').classList.remove('hidden');
+    this._renderSubStep();
     this._updateUI();
+  }
 
-    // Check completion
-    const newGrid = this.gridUI.getGrid();
-    if (this.solver.isComplete(newGrid)) {
-      setTimeout(() => {
-        this._showToast('🎉 Congratulations! Puzzle solved!', 'success');
-      }, 500);
+  _breakIntoSubSteps(step) {
+    const { type, cell, value, highlights } = step;
+
+    if (type === 'naked_single' && cell) {
+      const cellHL = [{ row: cell.row, col: cell.col, color: 'info' }];
+      const peerHL = highlights ? highlights.filter(h => h.color !== 'success') : [];
+      return [
+        { text: `Look at <strong>R${cell.row+1}C${cell.col+1}</strong>. What number can go here?`, highlights: cellHL },
+        { text: `All other numbers are already in its row, column, or box — only <strong>${value}</strong> is left.`, highlights: [...cellHL, ...peerHL] },
+        { text: `Place <strong>${value}</strong> at R${cell.row+1}C${cell.col+1}! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+      ];
+    }
+
+    if (type === 'hidden_single' && cell) {
+      const unitMatch = step.explanation.match(/in (Row \d+|Column \d+|Box \d+)/i);
+      const unitName = unitMatch ? unitMatch[1] : 'this unit';
+      const blockHL = highlights ? highlights.filter(h => h.color === 'info' || h.color === 'warning') : [];
+      return [
+        { text: `Look at <strong>${unitName}</strong>. Where can <strong>${value}</strong> go?`, highlights: [...blockHL, { row: cell.row, col: cell.col, color: 'info' }] },
+        { text: `Other cells are blocked by existing <strong>${value}</strong>s nearby.`, highlights: highlights || [] },
+        { text: `Only place for <strong>${value}</strong> is <strong>R${cell.row+1}C${cell.col+1}</strong>! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+      ];
+    }
+
+    if ((type === 'pointing_pair' || type === 'box_line_reduction') && highlights) {
+      const label = type === 'pointing_pair' ? 'Pointing Pair' : 'Box/Line Reduction';
+      const primaryHL = highlights.filter(h => h.color === 'primary');
+      return [
+        { text: `<strong>${label}</strong> found! Look at the highlighted cells.`, highlights: primaryHL },
+        { text: step.explanation, highlights, applyElimination: true },
+      ];
+    }
+
+    if (type === 'backtrack' && cell) {
+      return [
+        { text: `This requires advanced logic. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }] },
+        { text: `The answer is <strong>${value}</strong>! ✓`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true },
+      ];
+    }
+
+    return [{ text: step.explanation, highlights: highlights || [], placeValue: !!(cell && value) }];
+  }
+
+  _renderSubStep() {
+    const sub = this.currentSubSteps[this.currentSubStepIndex];
+    const total = this.currentSubSteps.length;
+    const idx = this.currentSubStepIndex;
+
+    document.getElementById('hint-content').innerHTML = sub.text;
+
+    // Dots
+    const dots = document.getElementById('hint-dots');
+    dots.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+      const d = document.createElement('span');
+      d.className = 'hint-dot' + (i < idx ? ' done' : '') + (i === idx ? ' active' : '');
+      dots.appendChild(d);
+    }
+
+    // Arrows
+    document.getElementById('btn-hint-prev').disabled = idx === 0;
+    document.getElementById('btn-hint-next').disabled = idx === total - 1;
+
+    // Highlights
+    this.gridUI.clearHighlights();
+    if (sub.highlights) this.gridUI.highlightCells(sub.highlights);
+
+    // Place value on final step
+    if (sub.placeValue && !this._valuePlaced && this.pendingStep?.cell) {
+      this._valuePlaced = true;
+      const { row, col } = this.pendingStep.cell;
+      this.gridUI.setValue(row, col, this.pendingStep.value);
+      this._showCandidatesWithEliminations();
+      this.hintHistory.push(this.pendingStep);
+      this.hintIndex = this.hintHistory.length - 1;
+      const g = this.gridUI.getGrid();
+      if (this.solver.isComplete(g)) {
+        setTimeout(() => { this._showToast('🎉 Puzzle solved!', 'success'); document.getElementById('hint-panel').classList.add('hidden'); }, 500);
+      }
+    }
+    if (sub.applyElimination && !this._valuePlaced) {
+      this._valuePlaced = true;
+      this._showCandidatesWithEliminations();
+      this.hintHistory.push(this.pendingStep);
+      this.hintIndex = this.hintHistory.length - 1;
     }
   }
 
@@ -601,51 +668,14 @@ class App {
   }
 
   /* ── Hint Display ───────────────────────────── */
-  _renderHint(step) {
-    const panel = document.getElementById('hint-content');
-    const counter = document.getElementById('hint-counter');
-
-    if (!step) {
-      panel.innerHTML = '<p class="hint-empty">Click <strong>Next Step</strong> to get a solving hint with explanation.</p>';
-      counter.textContent = '';
-      return;
-    }
-
-    const badges = {
-      naked_single: { label: 'Naked Single', cls: 'badge-green' },
-      hidden_single: { label: 'Hidden Single', cls: 'badge-purple' },
-      naked_pair: { label: 'Naked Pair', cls: 'badge-orange' },
-      hidden_pair: { label: 'Hidden Pair', cls: 'badge-purple' },
-      pointing_pair: { label: 'Pointing Pair', cls: 'badge-orange' },
-      box_line_reduction: { label: 'Box/Line Reduction', cls: 'badge-blue' },
-      naked_triple: { label: 'Naked Triple', cls: 'badge-orange' },
-      x_wing: { label: 'X-Wing', cls: 'badge-red' },
-      xy_wing: { label: 'XY-Wing', cls: 'badge-red' },
-      backtrack: { label: 'Advanced', cls: 'badge-blue' },
-      complete: { label: 'Solved', cls: 'badge-green' },
-      error: { label: 'Error', cls: 'badge-red' },
-    };
-
-    const badge = badges[step.type] || badges.backtrack;
-    panel.innerHTML = `
-      <div class="hint-bubble">
-        <span class="hint-badge ${badge.cls}">${badge.label}</span>
-        <p class="hint-text">${step.explanation}</p>
-      </div>
-    `;
-
-    if (this.hintHistory.length > 0) {
-      counter.textContent = `Step ${this.hintIndex + 1} of ${this.hintHistory.length}`;
-    }
-  }
+  _renderHint(step) { /* handled by _renderSubStep */ }
 
   _navHint(dir) {
-    const newIdx = this.hintIndex + dir;
-    if (newIdx < 0 || newIdx >= this.hintHistory.length) return;
-    this.hintIndex = newIdx;
-    const step = this.hintHistory[newIdx];
-    this._renderHint(step);
-    if (step.highlights) this.gridUI.highlightCells(step.highlights);
+    if (!this.currentSubSteps) return;
+    const newIdx = this.currentSubStepIndex + dir;
+    if (newIdx < 0 || newIdx >= this.currentSubSteps.length) return;
+    this.currentSubStepIndex = newIdx;
+    this._renderSubStep();
   }
 
   /* ── Screens ───────────────────────────────── */
