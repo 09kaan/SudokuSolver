@@ -111,24 +111,6 @@
     <!-- Grid -->
     <div id="grid-container" class="grid-wrapper"></div>
 
-    <!-- Hint Panel (inline, between grid and controls) -->
-    <div id="hint-panel" class="hint-panel hidden">
-      <div class="hint-header">
-        <span id="hint-badge" class="hint-badge">Hint</span>
-        <button id="btn-hint-close" type="button" class="hint-close-btn">✕</button>
-      </div>
-      <div class="hint-body">
-        <p id="hint-content" class="hint-text"></p>
-      </div>
-      <div class="hint-footer">
-        <div class="hint-dots" id="hint-dots"></div>
-        <div class="hint-nav-btns">
-          <button id="btn-hint-prev" class="hint-arrow">‹</button>
-          <button id="btn-hint-next" class="hint-arrow">›</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Action Buttons -->
     <div class="action-bar">
       <button id="btn-undo" class="tool-btn" disabled>
@@ -171,6 +153,24 @@
     <button id="btn-edit-toggle" class="hidden" disabled></button>
     <button id="btn-clear" class="hidden" disabled></button>
     <span id="hint-counter" class="hidden"></span>
+  </div>
+
+  <!-- Hint Panel (fixed bottom overlay, covers controls) -->
+  <div id="hint-panel" class="hint-panel hidden">
+    <div class="hint-header">
+      <span id="hint-badge" class="hint-badge">Hint</span>
+      <button id="btn-hint-close" type="button" class="hint-close-btn">✕</button>
+    </div>
+    <div class="hint-body">
+      <p id="hint-content" class="hint-text"></p>
+    </div>
+    <div class="hint-footer">
+      <div class="hint-dots" id="hint-dots"></div>
+      <div class="hint-nav-btns">
+        <button id="btn-hint-prev" class="hint-arrow">‹</button>
+        <button id="btn-hint-next" class="hint-arrow">›</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── External Libraries ───────────────────── -->
