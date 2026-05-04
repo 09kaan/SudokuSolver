@@ -299,7 +299,7 @@ html, body {
 /* Cell value */
 .cell-value {
   font-size: calc(var(--cell-size) * 0.7);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   pointer-events: none;
 }
@@ -307,7 +307,7 @@ html, body {
 /* Cell states */
 .sudoku-cell.original .cell-value {
   color: var(--text);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .sudoku-cell.solved .cell-value {
@@ -470,8 +470,8 @@ html, body {
 .number-pad {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 2px;
+  padding: 6px 6px;
   padding-bottom: max(10px, var(--safe-bottom));
   background: var(--surface);
   position: relative;
@@ -485,8 +485,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 500;
   color: var(--primary);
   background: var(--surface);
   border: none;
