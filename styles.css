@@ -278,6 +278,11 @@ html, body {
   transition: background 0.15s;
 }
 
+/* Alternating 3x3 box backgrounds (diagonal pattern) */
+.sudoku-cell.box-shaded {
+  background: #f0f4ff;
+}
+
 .sudoku-cell:active {
   background: var(--primary-light);
 }
@@ -306,14 +311,19 @@ html, body {
 
 .sudoku-cell.selected {
   background: #bbdefb !important;
+  z-index: 1;
 }
 
 .sudoku-cell.same-value {
-  background: #c8e6c9;
+  background: #c8e6c9 !important;
 }
 
 .sudoku-cell.same-peer {
-  background: #e3f2fd;
+  background: #e8edf5;
+}
+
+.sudoku-cell.box-shaded.same-peer {
+  background: #dde4f2;
 }
 
 .sudoku-cell.error-cell {

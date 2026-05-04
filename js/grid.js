@@ -33,6 +33,10 @@ export class SudokuGrid {
         if (c % 3 === 0 && c !== 0) cell.classList.add('box-left');
         if (r % 3 === 0 && r !== 0) cell.classList.add('box-top');
 
+        // Alternating 3x3 box shading (diagonal pattern)
+        const boxR = Math.floor(r / 3), boxC = Math.floor(c / 3);
+        if ((boxR + boxC) % 2 === 0) cell.classList.add('box-shaded');
+
         const valSpan = document.createElement('span');
         valSpan.className = 'cell-value';
         cell.appendChild(valSpan);
@@ -282,12 +286,12 @@ export class SudokuGrid {
 
     const br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
     for (let i = 0; i < 9; i++) {
-      if (i !== c && this.grid[r][i] === 0) this.cells[r][i].classList.add('same-peer');
-      if (i !== r && this.grid[i][c] === 0) this.cells[i][c].classList.add('same-peer');
+      if (i !== c) this.cells[r][i].classList.add('same-peer');
+      if (i !== r) this.cells[i][c].classList.add('same-peer');
     }
     for (let i = br; i < br + 3; i++)
       for (let j = bc; j < bc + 3; j++)
-        if (!(i === r && j === c) && this.grid[i][j] === 0)
+        if (!(i === r && j === c))
           this.cells[i][j].classList.add('same-peer');
   }
 
