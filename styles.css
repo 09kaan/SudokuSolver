@@ -185,6 +185,14 @@ html, body {
   border-radius: var(--radius);
 }
 
+.version-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  text-align: center;
+  padding: 8px 0;
+}
+
 /* ── Game Screen ──────────────────────────────── */
 .game-screen {
   background: var(--bg);
@@ -289,7 +297,7 @@ html, body {
 
 /* Cell value */
 .cell-value {
-  font-size: calc(var(--cell-size) * 0.55);
+  font-size: calc(var(--cell-size) * 0.6);
   font-weight: 600;
   line-height: 1;
   pointer-events: none;
@@ -476,7 +484,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--primary);
   background: var(--surface);
