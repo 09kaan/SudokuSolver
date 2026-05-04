@@ -83,18 +83,15 @@ class App {
     // Hint navigation
     document.getElementById('btn-hint-prev').addEventListener('click', () => this._navHint(-1));
     document.getElementById('btn-hint-next').addEventListener('click', () => this._navHint(1));
-    document.getElementById('btn-hint-close').addEventListener('click', (e) => {
+    const closeHint = (e) => {
       e.preventDefault();
       e.stopPropagation();
       document.getElementById('hint-panel').classList.add('hidden');
       this.gridUI.clearHighlights();
-    });
-    document.getElementById('btn-hint-close').addEventListener('touchend', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('hint-panel').classList.add('hidden');
-      this.gridUI.clearHighlights();
-    });
+      if (this.gameMode) this.gridUI.enableEditing();
+    };
+    document.getElementById('btn-hint-close').addEventListener('click', closeHint);
+    document.getElementById('btn-hint-close').addEventListener('touchend', closeHint);
 
     // Confirm modal
     document.getElementById('modal-confirm').addEventListener('click', () => this._confirmSolve());
@@ -226,9 +223,13 @@ class App {
   /* ── Solving ────────────────────────────────── */
   _nextStep() {
     if (!this.puzzleLoaded) return;
-    this.gridUI.disableEditing();
-    document.getElementById('btn-edit-toggle').textContent = '✏️ Edit';
-    document.getElementById('btn-edit-toggle').classList.remove('active');
+
+    // Only disable editing in solver mode, not game mode
+    if (!this.gameMode) {
+      this.gridUI.disableEditing();
+      document.getElementById('btn-edit-toggle').textContent = '✏️ Edit';
+      document.getElementById('btn-edit-toggle').classList.remove('active');
+    }
 
     const grid = this.gridUI.getGrid();
 
@@ -308,8 +309,8 @@ class App {
 
     if (type === 'backtrack' && cell) {
       return [
-        { text: `This requires advanced logic. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
-        { text: `The answer is <strong>${value}</strong>! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
+        { text: `This cell needs <strong>trial and error</strong>. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
+        { text: `After testing possibilities, <strong>${value}</strong> is the only number that works here.`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
@@ -351,10 +352,15 @@ class App {
     if (sub.placeValue && !this._valuePlaced && this.pendingStep?.cell) {
       this._valuePlaced = true;
       const { row, col } = this.pendingStep.cell;
+      const prevVal = this.gridUI.grid[row][col];
       this.gridUI.setValue(row, col, this.pendingStep.value);
       this._showCandidatesWithEliminations();
       this.hintHistory.push(this.pendingStep);
       this.hintIndex = this.hintHistory.length - 1;
+      // Push to undo stack so hints can be undone
+      this.undoStack.push({ row, col, prevVal, newVal: this.pendingStep.value });
+      document.getElementById('btn-undo').disabled = false;
+      if (this.gameMode) this._updateGameBar();
       const g = this.gridUI.getGrid();
       if (this.solver.isComplete(g)) {
         setTimeout(() => { this._showToast('🎉 Puzzle solved!', 'success'); document.getElementById('hint-panel').classList.add('hidden'); }, 500);
