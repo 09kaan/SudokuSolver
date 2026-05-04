@@ -100,9 +100,9 @@
     <!-- Top Bar -->
     <div class="game-topbar">
       <button id="btn-back" class="topbar-btn">← Back</button>
-      <span id="game-difficulty" class="game-badge"></span>
       <button id="btn-new" class="topbar-btn">New</button>
     </div>
+    <span id="game-difficulty" class="hidden"></span>
     <span id="game-timer" class="hidden">00:00</span>
     <span id="game-errors" class="hidden">0</span>
 
@@ -127,10 +127,6 @@
         <span class="tool-icon">💡</span>
         <span class="tool-label">Hint</span>
       </button>
-      <button id="btn-check" class="tool-btn" disabled>
-        <span class="tool-icon">✓</span>
-        <span class="tool-label">Check</span>
-      </button>
     </div>
 
     <!-- Number Pad -->
@@ -150,6 +146,7 @@
     <button id="btn-solve-all" class="hidden" disabled></button>
     <button id="btn-edit-toggle" class="hidden" disabled></button>
     <button id="btn-clear" class="hidden" disabled></button>
+    <button id="btn-check" class="hidden" disabled></button>
     <span id="hint-counter" class="hidden"></span>
 
     <!-- Hint Panel (fixed bottom overlay, covers controls) -->

@@ -586,17 +586,10 @@ class App {
     if (this.gameMode) {
       this._updateGameBar();
 
-      // Auto-check: if wrong, flash red and remove
+      // Auto-check: if wrong, mark red
       if (val !== 0 && this.solution && this.solution[r][c] !== val) {
         this.errorCount++;
-        const cell = this.gridUI.cells[r][c];
-        cell.classList.add('error-cell');
-        // Flash and auto-remove after delay
-        setTimeout(() => {
-          cell.classList.remove('error-cell');
-          this.gridUI.setValue(r, c, 0, false);
-        }, 600);
-        return;
+        this.gridUI.cells[r][c].classList.add('error-cell');
       }
 
       // Check if puzzle complete
