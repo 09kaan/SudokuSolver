@@ -48,6 +48,22 @@ export class SudokuSolver {
   }
 
   /**
+   * Check if a puzzle can be solved entirely with logical techniques (no backtracking)
+   */
+  canSolveLogically(grid) {
+    const g = grid.map(r => [...r]);
+    const tempSolver = new SudokuSolver();
+    let maxSteps = 200;
+    while (!tempSolver.isComplete(g) && maxSteps-- > 0) {
+      const step = tempSolver.getNextStep(g);
+      if (!step || step.type === 'backtrack' || step.type === 'error') return false;
+      if (step.cell && step.value) g[step.cell.row][step.cell.col] = step.value;
+      else break; // elimination-only step, apply and continue
+    }
+    return tempSolver.isComplete(g);
+  }
+
+  /**
    * Get the next logical step (hint)
    * Tries techniques in order of complexity
    * @returns {object|null} Step object or null if puzzle is complete/unsolvable

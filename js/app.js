@@ -238,15 +238,28 @@ class App {
       return;
     }
 
-    const step = this.solver.getNextStep(grid);
+    let step = this.solver.getNextStep(grid);
 
-    if (!step) {
-      this._showToast('No valid next step found.', 'error');
-      return;
+    // If no logical step or backtrack needed, use solution as fallback
+    if ((!step || step.type === 'backtrack') && this.solution) {
+      // Find first empty cell and give the answer from solution
+      for (let r = 0; r < 9 && !step; r++) {
+        for (let c = 0; c < 9 && !step; c++) {
+          if (grid[r][c] === 0) {
+            step = {
+              type: 'naked_single',
+              cell: { row: r, col: c },
+              value: this.solution[r][c],
+              explanation: `The answer is ${this.solution[r][c]}`,
+              highlights: [{ row: r, col: c, color: 'success' }],
+            };
+          }
+        }
+      }
     }
 
-    if (step.type === 'error') {
-      this._showToast(step.explanation, 'error');
+    if (!step) {
+      this._showToast('No hint available.', 'error');
       return;
     }
 
@@ -455,29 +468,57 @@ class App {
 
   /* ── Game Mode ─────────────────────────────── */
   async _startGame(difficulty) {
-    this._showLoading('Loading puzzle...');
+    this._showLoading('Generating puzzle...');
 
     let puzzle, solution;
+    let found = false;
 
-    try {
-      // Try API first for fresh puzzles
-      const apiDiff = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Hard' }[difficulty] || 'Medium';
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+    // Try API first (up to 3 attempts)
+    for (let attempt = 0; attempt < 3 && !found; attempt++) {
+      try {
+        const apiDiff = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Hard' }[difficulty] || 'Medium';
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
 
-      const res = await fetch(`https://sudoku-api.vercel.app/api/dosuku?query={newboard(limit:1,type:${apiDiff}){grids{value,solution,difficulty}}}`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeout);
+        const res = await fetch(`https://sudoku-api.vercel.app/api/dosuku?query={newboard(limit:1,type:${apiDiff}){grids{value,solution,difficulty}}}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
 
-      const data = await res.json();
-      const grid = data.newboard.grids[0];
-      puzzle = grid.value;
-      solution = grid.solution;
-      console.log('Puzzle loaded from API ✓');
-    } catch (err) {
-      // Fallback to local library
-      console.log('API failed, using local library:', err.message);
+        const data = await res.json();
+        const grid = data.newboard.grids[0];
+
+        // Validate: must be solvable without backtracking
+        if (this.solver.canSolveLogically(grid.value)) {
+          puzzle = grid.value;
+          solution = grid.solution;
+          found = true;
+          console.log(`Puzzle from API validated ✓ (attempt ${attempt + 1})`);
+        } else {
+          console.log(`API puzzle needs backtracking, retrying... (${attempt + 1}/3)`);
+        }
+      } catch (err) {
+        console.log('API attempt failed:', err.message);
+      }
+    }
+
+    // Fallback to local library with validation
+    if (!found) {
+      console.log('Using local library with validation');
+      for (let i = 0; i < 20; i++) {
+        const local = PuzzleLibrary.getRandom(difficulty);
+        if (this.solver.canSolveLogically(local.puzzle)) {
+          puzzle = local.puzzle;
+          solution = local.solution;
+          found = true;
+          console.log(`Local puzzle validated ✓ (attempt ${i + 1})`);
+          break;
+        }
+      }
+    }
+
+    // Last resort: use any local puzzle (shouldn't happen normally)
+    if (!found) {
       const local = PuzzleLibrary.getRandom(difficulty);
       puzzle = local.puzzle;
       solution = local.solution;
