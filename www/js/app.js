@@ -586,14 +586,25 @@ class App {
     if (this.gameMode) {
       this._updateGameBar();
 
+      // Auto-check: if wrong, flash red and remove
+      if (val !== 0 && this.solution && this.solution[r][c] !== val) {
+        this.errorCount++;
+        const cell = this.gridUI.cells[r][c];
+        cell.classList.add('error-cell');
+        // Flash and auto-remove after delay
+        setTimeout(() => {
+          cell.classList.remove('error-cell');
+          this.gridUI.setValue(r, c, 0, false);
+        }, 600);
+        return;
+      }
+
       // Check if puzzle complete
       const grid = this.gridUI.getGrid();
       if (this.solver.isComplete(grid)) {
         if (this.solution && this._isCorrect(grid)) {
           this._stopTimer();
-          const mins = Math.floor(this.timerSeconds / 60);
-          const secs = this.timerSeconds % 60;
-          this._showToast(`🎉 Congratulations! Solved in ${mins}:${secs.toString().padStart(2, '0')} with ${this.errorCount} errors!`, 'success');
+          this._showToast('🎉 Congratulations!', 'success');
         }
       }
     }
