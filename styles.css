@@ -13,7 +13,7 @@
   --danger: #ef4444;
   --warning: #f59e0b;
   --border: #e5e7eb;
-  --cell-size: min(10vw, 46px, calc((100vh - 220px) / 9.5));
+  --cell-size: min(10.2vw, 46px, calc((100vh - 240px) / 9.5));
   --grid-gap: 1px;
   --radius: 12px;
   --shadow: 0 2px 12px rgba(0,0,0,0.06);
@@ -289,7 +289,7 @@ html, body {
 
 /* Cell value */
 .cell-value {
-  font-size: calc(var(--cell-size) * 0.5);
+  font-size: calc(var(--cell-size) * 0.55);
   font-weight: 600;
   line-height: 1;
   pointer-events: none;
@@ -322,7 +322,10 @@ html, body {
   background: #dde4f2;
 }
 
-.sudoku-cell.error-cell {
+/* Error MUST override same-value */
+.sudoku-cell.error-cell,
+.sudoku-cell.error-cell.same-value,
+.sudoku-cell.error-cell.same-peer {
   background: #ffcdd2 !important;
 }
 
@@ -469,11 +472,11 @@ html, body {
 
 .num-btn {
   aspect-ratio: 0.85;
-  max-height: 48px;
+  max-height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--primary);
   background: var(--surface);
