@@ -109,16 +109,26 @@
   <!-- ── Game Screen ──────────────────────────── -->
   <div id="game-screen" class="screen game-screen hidden">
 
-    <!-- Top Bar -->
-    <div class="game-topbar">
+    <!-- Top Nav -->
+    <div class="game-nav">
       <button id="btn-back" class="topbar-btn">← Back</button>
-      <div class="topbar-center">
-        <span id="game-difficulty" class="game-badge"></span>
-        <span id="game-timer" class="game-timer">00:00</span>
-      </div>
       <button id="btn-new" class="topbar-btn">New</button>
     </div>
-    <span id="game-errors" class="hidden">0</span>
+
+    <!-- Game Info Row (above grid) -->
+    <div class="game-info-row">
+      <div class="info-item">
+        <span class="info-label">Errors</span>
+        <span id="game-errors" class="info-value">0/3</span>
+      </div>
+      <div class="info-item info-center">
+        <span id="game-difficulty" class="info-value info-difficulty">Medium</span>
+      </div>
+      <div class="info-item info-right">
+        <span class="info-label">Time</span>
+        <span id="game-timer" class="info-value">00:00</span>
+      </div>
+    </div>
 
     <!-- Grid -->
     <div id="grid-container" class="grid-wrapper"></div>

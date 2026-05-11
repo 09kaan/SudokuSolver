@@ -295,9 +295,9 @@ class App {
       const cellHL = [{ row: cell.row, col: cell.col, color: 'info' }];
       const peerHL = highlights ? highlights.filter(h => h.color !== 'success') : [];
       return [
-        { text: `Look at <strong>R${cell.row+1}C${cell.col+1}</strong>. What number can go here?`, highlights: cellHL, badge },
+        { text: `Look at <strong>R${cell.row + 1}C${cell.col + 1}</strong>. What number can go here?`, highlights: cellHL, badge },
         { text: `All other numbers are already in its row, column, or box \u2014 only <strong>${value}</strong> is left.`, highlights: [...cellHL, ...peerHL], badge },
-        { text: `Place <strong>${value}</strong> at R${cell.row+1}C${cell.col+1}! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
+        { text: `Place <strong>${value}</strong> at R${cell.row + 1}C${cell.col + 1}! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
@@ -308,7 +308,7 @@ class App {
       return [
         { text: `Look at <strong>${unitName}</strong>. Where can <strong>${value}</strong> go?`, highlights: [...blockHL, { row: cell.row, col: cell.col, color: 'info' }], badge },
         { text: `Other cells are blocked by existing <strong>${value}</strong>s nearby.`, highlights: highlights || [], badge },
-        { text: `Only place for <strong>${value}</strong> is <strong>R${cell.row+1}C${cell.col+1}</strong>! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
+        { text: `Only place for <strong>${value}</strong> is <strong>R${cell.row + 1}C${cell.col + 1}</strong>! \u2713`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
@@ -322,7 +322,7 @@ class App {
 
     if (type === 'backtrack' && cell) {
       return [
-        { text: `This cell needs <strong>trial and error</strong>. Look at <strong>R${cell.row+1}C${cell.col+1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
+        { text: `This cell needs <strong>trial and error</strong>. Look at <strong>R${cell.row + 1}C${cell.col + 1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
         { text: `After testing possibilities, <strong>${value}</strong> is the only number that works here.`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
@@ -538,10 +538,10 @@ class App {
     // Show game info
     const labels = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert' };
     document.getElementById('game-difficulty').textContent = labels[difficulty] || difficulty;
+    document.getElementById('game-errors').textContent = '0/3';
 
     this._startTimer();
     this._updateGameBar();
-    this._showToast('Game started!', 'success');
   }
 
   _onPlayerMove(r, c, val) {
@@ -590,6 +590,20 @@ class App {
       if (val !== 0 && this.solution && this.solution[r][c] !== val) {
         this.errorCount++;
         this.gridUI.cells[r][c].classList.add('error-cell');
+        document.getElementById('game-errors').textContent = `${this.errorCount}/3`;
+
+        // Game over at 3 errors
+        if (this.errorCount >= 3) {
+          this._stopTimer();
+          this.gridUI.disableEditing();
+          this._showToast('❌ Game Over! Too many errors.', 'error');
+          setTimeout(() => {
+            if (confirm('Game Over! 3 errors reached.\n\nStart a new game?')) {
+              document.getElementById('btn-new').click();
+            }
+          }, 500);
+          return;
+        }
       }
 
       // Check if puzzle complete
@@ -695,12 +709,7 @@ class App {
   }
 
   _updateGameBar() {
-    const grid = this.gridUI.getGrid();
-    let filled = 0;
-    for (let r = 0; r < 9; r++)
-      for (let c = 0; c < 9; c++)
-        if (grid[r][c] !== 0) filled++;
-    document.getElementById('game-errors').textContent = `${this.errorCount} ❌`;
+    document.getElementById('game-errors').textContent = `${this.errorCount}/3`;
   }
 
   _toggleEdit() {
