@@ -249,18 +249,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 12px;
+  padding: 4px 8px;
   padding-top: max(4px, env(safe-area-inset-top));
 }
 
 .topbar-btn {
   background: none;
   border: none;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--primary);
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
@@ -270,68 +270,67 @@ body {
   background: #e0e7ff;
 }
 
-/* Game Info Row */
+/* Game Info Row — single subtle line */
 .game-info-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 16px 8px;
+  justify-content: center;
+  gap: 16px;
+  padding: 2px 16px 6px;
 }
 
 .info-item {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.info-item.info-center {
-  text-align: center;
-}
-
-.info-item.info-right {
-  text-align: right;
-  align-items: flex-end;
+  align-items: center;
+  gap: 4px;
 }
 
 .info-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .info-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .info-difficulty {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   text-transform: capitalize;
 }
 
 /* Error counter red */
 #game-errors {
   color: #ef4444;
+  font-weight: 700;
 }
 
-/* Difficulty colors */
+/* Difficulty colors — subtle */
 .info-difficulty.diff-easy {
   color: #22c55e;
 }
 
 .info-difficulty.diff-medium {
-  color: #eab308;
+  color: #d4a80a;
 }
 
 .info-difficulty.diff-hard {
-  color: #f97316;
+  color: #ea8c1c;
 }
 
 .info-difficulty.diff-expert {
   color: #ef4444;
+}
+
+.info-dot {
+  color: var(--border);
+  font-size: 16px;
+  font-weight: 700;
 }
 
 /* ── Grid ─────────────────────────────────────── */
