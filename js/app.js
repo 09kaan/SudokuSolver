@@ -537,7 +537,9 @@ class App {
 
     // Show game info
     const labels = { easy: 'Easy', medium: 'Medium', hard: 'Hard', expert: 'Expert' };
-    document.getElementById('game-difficulty').textContent = labels[difficulty] || difficulty;
+    const diffEl = document.getElementById('game-difficulty');
+    diffEl.textContent = labels[difficulty] || difficulty;
+    diffEl.className = 'info-value info-difficulty diff-' + difficulty;
     document.getElementById('game-errors').textContent = '0/3';
 
     this._startTimer();

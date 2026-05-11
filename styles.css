@@ -312,6 +312,28 @@ body {
   text-transform: capitalize;
 }
 
+/* Error counter red */
+#game-errors {
+  color: #ef4444;
+}
+
+/* Difficulty colors */
+.info-difficulty.diff-easy {
+  color: #22c55e;
+}
+
+.info-difficulty.diff-medium {
+  color: #eab308;
+}
+
+.info-difficulty.diff-hard {
+  color: #f97316;
+}
+
+.info-difficulty.diff-expert {
+  color: #ef4444;
+}
+
 /* ── Grid ─────────────────────────────────────── */
 .grid-wrapper {
   display: flex;
