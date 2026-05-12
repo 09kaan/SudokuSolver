@@ -1,0 +1,232 @@
+[
+  {
+    "i": 1,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 46,
+    "techs": {
+      "naked_single": 46
+    }
+  },
+  {
+    "i": 2,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 60,
+    "techs": {
+      "naked_single": 41,
+      "hidden_single": 10,
+      "naked_pair": 1,
+      "hidden_pair": 1,
+      "two_string_kite": 7
+    }
+  },
+  {
+    "i": 3,
+    "diff": "Hard",
+    "solver": true,
+    "logical": true,
+    "steps": 71,
+    "techs": {
+      "hidden_single": 22,
+      "two_string_kite": 12,
+      "naked_single": 37
+    }
+  },
+  {
+    "i": 4,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 43,
+    "techs": {
+      "naked_single": 42,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 5,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 50,
+    "techs": {
+      "naked_single": 42,
+      "hidden_single": 5,
+      "two_string_kite": 3
+    }
+  },
+  {
+    "i": 6,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 46,
+    "techs": {
+      "naked_single": 44,
+      "two_string_kite": 2
+    }
+  },
+  {
+    "i": 7,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 49,
+    "techs": {
+      "naked_single": 39,
+      "hidden_single": 4,
+      "pointing_pair": 1,
+      "two_string_kite": 5
+    }
+  },
+  {
+    "i": 8,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 44,
+    "techs": {
+      "naked_single": 40,
+      "two_string_kite": 2,
+      "hidden_single": 2
+    }
+  },
+  {
+    "i": 9,
+    "diff": "Hard",
+    "solver": true,
+    "logical": false,
+    "steps": 8,
+    "techs": {
+      "hidden_single": 6,
+      "two_string_kite": 2
+    }
+  },
+  {
+    "i": 10,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 51,
+    "techs": {
+      "naked_single": 43,
+      "hidden_single": 4,
+      "two_string_kite": 4
+    }
+  },
+  {
+    "i": 11,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 42,
+    "techs": {
+      "naked_single": 42
+    }
+  },
+  {
+    "i": 12,
+    "diff": "Hard",
+    "solver": true,
+    "logical": false,
+    "steps": 22,
+    "techs": {
+      "two_string_kite": 7,
+      "hidden_single": 14,
+      "naked_single": 1
+    }
+  },
+  {
+    "i": 13,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 49,
+    "techs": {
+      "naked_single": 43,
+      "hidden_single": 5,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 14,
+    "diff": "Hard",
+    "solver": true,
+    "logical": false,
+    "steps": 4,
+    "techs": {
+      "hidden_single": 3,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 15,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 44,
+    "techs": {
+      "naked_single": 43,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 16,
+    "diff": "Hard",
+    "solver": true,
+    "logical": false,
+    "steps": 3,
+    "techs": {
+      "hidden_single": 3
+    }
+  },
+  {
+    "i": 17,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 48,
+    "techs": {
+      "naked_single": 37,
+      "hidden_single": 9,
+      "two_string_kite": 2
+    }
+  },
+  {
+    "i": 18,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 46,
+    "techs": {
+      "naked_single": 46
+    }
+  },
+  {
+    "i": 19,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 51,
+    "techs": {
+      "naked_single": 43,
+      "hidden_single": 6,
+      "two_string_kite": 2
+    }
+  },
+  {
+    "i": 20,
+    "diff": "Medium",
+    "solver": true,
+    "logical": true,
+    "steps": 57,
+    "techs": {
+      "naked_single": 42,
+      "hidden_single": 10,
+      "two_string_kite": 5
+    }
+  }
+]
