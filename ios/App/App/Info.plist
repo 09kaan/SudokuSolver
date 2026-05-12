@@ -47,6 +47,10 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Sudoku Solver needs camera access to scan and solve puzzles from photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sudoku Solver needs photo library access to import puzzle images for scanning.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>
