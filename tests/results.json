@@ -1,8 +1,31 @@
 [
   {
     "i": 1,
+    "diff": "Hard",
+    "logical": false,
+    "steps": 25,
+    "techs": {
+      "hidden_single": 15,
+      "two_string_kite": 5,
+      "x_chain": 1,
+      "simple_coloring": 1,
+      "naked_single": 2,
+      "w_wing": 1
+    }
+  },
+  {
+    "i": 2,
     "diff": "Medium",
-    "solver": true,
+    "logical": true,
+    "steps": 44,
+    "techs": {
+      "naked_single": 43,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 3,
+    "diff": "Medium",
     "logical": true,
     "steps": 46,
     "techs": {
@@ -10,46 +33,52 @@
     }
   },
   {
-    "i": 2,
-    "diff": "Medium",
-    "solver": true,
-    "logical": true,
-    "steps": 60,
-    "techs": {
-      "naked_single": 41,
-      "hidden_single": 10,
-      "naked_pair": 1,
-      "hidden_pair": 1,
-      "two_string_kite": 7
-    }
-  },
-  {
-    "i": 3,
-    "diff": "Hard",
-    "solver": true,
-    "logical": true,
-    "steps": 71,
-    "techs": {
-      "hidden_single": 22,
-      "two_string_kite": 12,
-      "naked_single": 37
-    }
-  },
-  {
     "i": 4,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 43,
+    "steps": 48,
     "techs": {
-      "naked_single": 42,
-      "two_string_kite": 1
+      "naked_single": 38,
+      "hidden_single": 8,
+      "two_string_kite": 2
     }
   },
   {
     "i": 5,
     "diff": "Medium",
-    "solver": true,
+    "logical": true,
+    "steps": 48,
+    "techs": {
+      "naked_single": 44,
+      "hidden_single": 1,
+      "two_string_kite": 3
+    }
+  },
+  {
+    "i": 6,
+    "diff": "Easy",
+    "logical": true,
+    "steps": 42,
+    "techs": {
+      "naked_single": 41,
+      "two_string_kite": 1
+    }
+  },
+  {
+    "i": 7,
+    "diff": "Medium",
+    "logical": true,
+    "steps": 69,
+    "techs": {
+      "hidden_single": 26,
+      "two_string_kite": 12,
+      "pointing_pair": 1,
+      "naked_single": 30
+    }
+  },
+  {
+    "i": 8,
+    "diff": "Medium",
     "logical": true,
     "steps": 50,
     "techs": {
@@ -59,174 +88,138 @@
     }
   },
   {
-    "i": 6,
-    "diff": "Medium",
-    "solver": true,
-    "logical": true,
-    "steps": 46,
-    "techs": {
-      "naked_single": 44,
-      "two_string_kite": 2
-    }
-  },
-  {
-    "i": 7,
-    "diff": "Medium",
-    "solver": true,
-    "logical": true,
-    "steps": 49,
-    "techs": {
-      "naked_single": 39,
-      "hidden_single": 4,
-      "pointing_pair": 1,
-      "two_string_kite": 5
-    }
-  },
-  {
-    "i": 8,
-    "diff": "Medium",
-    "solver": true,
-    "logical": true,
-    "steps": 44,
-    "techs": {
-      "naked_single": 40,
-      "two_string_kite": 2,
-      "hidden_single": 2
-    }
-  },
-  {
     "i": 9,
-    "diff": "Hard",
-    "solver": true,
-    "logical": false,
-    "steps": 8,
+    "diff": "Medium",
+    "logical": true,
+    "steps": 57,
     "techs": {
-      "hidden_single": 6,
-      "two_string_kite": 2
+      "naked_single": 43,
+      "hidden_single": 8,
+      "two_string_kite": 6
     }
   },
   {
     "i": 10,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 51,
+    "steps": 55,
     "techs": {
-      "naked_single": 43,
-      "hidden_single": 4,
-      "two_string_kite": 4
+      "naked_single": 39,
+      "hidden_single": 14,
+      "two_string_kite": 2
     }
   },
   {
     "i": 11,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 42,
+    "steps": 49,
     "techs": {
-      "naked_single": 42
+      "naked_single": 45,
+      "hidden_single": 2,
+      "two_string_kite": 2
     }
   },
   {
     "i": 12,
     "diff": "Hard",
-    "solver": true,
     "logical": false,
-    "steps": 22,
+    "steps": 28,
     "techs": {
-      "two_string_kite": 7,
-      "hidden_single": 14,
-      "naked_single": 1
+      "two_string_kite": 8,
+      "hidden_single": 16,
+      "simple_coloring": 2,
+      "naked_single": 2
     }
   },
   {
     "i": 13,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 49,
+    "steps": 60,
     "techs": {
-      "naked_single": 43,
-      "hidden_single": 5,
-      "two_string_kite": 1
+      "naked_single": 47,
+      "hidden_single": 6,
+      "naked_pair": 1,
+      "two_string_kite": 6
     }
   },
   {
     "i": 14,
-    "diff": "Hard",
-    "solver": true,
-    "logical": false,
-    "steps": 4,
+    "diff": "Easy",
+    "logical": true,
+    "steps": 42,
     "techs": {
-      "hidden_single": 3,
+      "naked_single": 41,
       "two_string_kite": 1
     }
   },
   {
     "i": 15,
-    "diff": "Medium",
-    "solver": true,
-    "logical": true,
-    "steps": 44,
+    "diff": "Hard",
+    "logical": false,
+    "steps": 8,
     "techs": {
-      "naked_single": 43,
+      "hidden_single": 7,
       "two_string_kite": 1
     }
   },
   {
     "i": 16,
     "diff": "Hard",
-    "solver": true,
-    "logical": false,
-    "steps": 3,
+    "logical": true,
+    "steps": 66,
     "techs": {
-      "hidden_single": 3
+      "two_string_kite": 8,
+      "hidden_single": 17,
+      "naked_single": 40,
+      "x_chain": 1
     }
   },
   {
     "i": 17,
-    "diff": "Medium",
-    "solver": true,
+    "diff": "Easy",
     "logical": true,
-    "steps": 48,
+    "steps": 42,
     "techs": {
-      "naked_single": 37,
-      "hidden_single": 9,
-      "two_string_kite": 2
+      "naked_single": 36,
+      "hidden_single": 5,
+      "two_string_kite": 1
     }
   },
   {
     "i": 18,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 46,
+    "steps": 56,
     "techs": {
-      "naked_single": 46
+      "hidden_single": 14,
+      "box_line_reduction": 1,
+      "two_string_kite": 5,
+      "naked_single": 36
     }
   },
   {
     "i": 19,
     "diff": "Medium",
-    "solver": true,
     "logical": true,
-    "steps": 51,
+    "steps": 63,
     "techs": {
-      "naked_single": 43,
-      "hidden_single": 6,
-      "two_string_kite": 2
+      "hidden_single": 26,
+      "two_string_kite": 8,
+      "naked_single": 29
     }
   },
   {
     "i": 20,
-    "diff": "Medium",
-    "solver": true,
+    "diff": "Hard",
     "logical": true,
-    "steps": 57,
+    "steps": 70,
     "techs": {
-      "naked_single": 42,
-      "hidden_single": 10,
-      "two_string_kite": 5
+      "hidden_single": 21,
+      "naked_single": 38,
+      "two_string_kite": 10,
+      "simple_coloring": 1
     }
   }
 ]
