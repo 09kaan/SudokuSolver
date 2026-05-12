@@ -79,13 +79,16 @@ export class SudokuGrid {
 
       if (e.key >= '1' && e.key <= '9' && this.editing && !this.originalCells.has(`${r},${c}`)) {
         e.preventDefault();
-        this.setValue(r, c, parseInt(e.key), false);
-        if (this.onCellChange) this.onCellChange(r, c, parseInt(e.key));
+        const oldValue = this.grid[r][c];
+        const newValue = parseInt(e.key, 10);
+        this.setValue(r, c, newValue, false);
+        if (this.onCellChange) this.onCellChange(r, c, newValue, oldValue);
       }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && this.editing && !this.originalCells.has(`${r},${c}`)) {
         e.preventDefault();
+        const oldValue = this.grid[r][c];
         this.setValue(r, c, 0, false);
-        if (this.onCellChange) this.onCellChange(r, c, 0);
+        if (this.onCellChange) this.onCellChange(r, c, 0, oldValue);
       }
       else if (e.key.startsWith('Arrow')) {
         e.preventDefault();
@@ -109,8 +112,9 @@ export class SudokuGrid {
         const [r, c] = this.selectedCell;
         if (this.originalCells.has(`${r},${c}`)) return;
         const n = parseInt(btn.dataset.num);
+        const oldValue = this.grid[r][c];
         this.setValue(r, c, n, false);
-        if (this.onCellChange) this.onCellChange(r, c, n);
+        if (this.onCellChange) this.onCellChange(r, c, n, oldValue);
         this._updateCompletedNumbers();
       });
     });
@@ -122,8 +126,9 @@ export class SudokuGrid {
         if (!this.selectedCell || !this.editing) return;
         const [r, c] = this.selectedCell;
         if (this.originalCells.has(`${r},${c}`)) return;
+        const oldValue = this.grid[r][c];
         this.setValue(r, c, 0, false);
-        if (this.onCellChange) this.onCellChange(r, c, 0);
+        if (this.onCellChange) this.onCellChange(r, c, 0, oldValue);
       });
     }
   }

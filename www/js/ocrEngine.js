@@ -16,7 +16,11 @@ export class OCREngine {
 
     if (onProgress) onProgress('Initializing OCR engine...');
 
+    const tesseractBase = new URL('vendor/tesseract/', document.baseURI).href;
     this.worker = await Tesseract.createWorker('eng', 1, {
+      workerPath: new URL('worker.min.js', tesseractBase).href,
+      corePath: new URL('core/', tesseractBase).href,
+      langPath: new URL('lang/', tesseractBase).href,
       logger: (m) => {
         if (m.status && onProgress) onProgress(m.status);
       },

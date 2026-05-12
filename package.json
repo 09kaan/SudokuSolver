@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "AI-Powered Sudoku Solver & Game",
   "scripts": {
-    "build": "xcopy /E /Y /I index.html www\\ && xcopy /E /Y /I styles.css www\\ && xcopy /E /Y /I js www\\js\\",
+    "build": "if exist www rmdir /S /Q www && mkdir www\\js && xcopy /Y index.html www\\ && xcopy /Y styles.css www\\ && xcopy /E /Y /I js www\\js\\ && xcopy /E /Y /I vendor www\\vendor\\",
     "sync": "npx cap sync",
     "android": "npx cap open android",
     "ios": "npx cap open ios"

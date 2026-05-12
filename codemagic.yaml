@@ -24,6 +24,7 @@ workflows:
           cp index.html www/
           cp styles.css www/
           cp js/*.js www/js/
+          cp -R vendor www/
       - name: Sync Capacitor
         script: |
           npx cap sync ios
@@ -75,6 +76,7 @@ workflows:
           cp index.html www/
           cp styles.css www/
           cp js/*.js www/js/
+          cp -R vendor www/
       - name: Sync Capacitor
         script: |
           npx cap sync android

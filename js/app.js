@@ -33,7 +33,7 @@ class App {
     this.userNotes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
 
     // Track player moves for undo
-    this.gridUI.onCellChange = (r, c, val) => this._onPlayerMove(r, c, val);
+    this.gridUI.onCellChange = (r, c, val, oldVal) => this._onPlayerMove(r, c, val, oldVal);
 
     this._bindEvents();
     this._updateUI();
@@ -240,26 +240,8 @@ class App {
 
     let step = this.solver.getNextStep(grid);
 
-    // If no logical step or backtrack needed, use solution as fallback
-    if ((!step || step.type === 'backtrack') && this.solution) {
-      // Find first empty cell and give the answer from solution
-      for (let r = 0; r < 9 && !step; r++) {
-        for (let c = 0; c < 9 && !step; c++) {
-          if (grid[r][c] === 0) {
-            step = {
-              type: 'naked_single',
-              cell: { row: r, col: c },
-              value: this.solution[r][c],
-              explanation: `The answer is ${this.solution[r][c]}`,
-              highlights: [{ row: r, col: c, color: 'success' }],
-            };
-          }
-        }
-      }
-    }
-
     if (!step) {
-      this._showToast('No hint available.', 'error');
+      this._showToast('No logical hint available for this position.', 'error');
       return;
     }
 
@@ -287,9 +269,8 @@ class App {
       naked_triple: { label: 'Naked Triple', cls: 'badge-orange' },
       x_wing: { label: 'X-Wing', cls: 'badge-red' },
       xy_wing: { label: 'XY-Wing', cls: 'badge-red' },
-      backtrack: { label: 'Advanced', cls: 'badge-blue' },
     };
-    const badge = badges[type] || badges.backtrack;
+    const badge = badges[type] || { label: 'Hint', cls: 'badge-blue' };
 
     if (type === 'naked_single' && cell) {
       const cellHL = [{ row: cell.row, col: cell.col, color: 'info' }];
@@ -317,13 +298,6 @@ class App {
       return [
         { text: `Look at the highlighted cells in the box.`, highlights: primaryHL, badge },
         { text: step.explanation, highlights, applyElimination: true, badge },
-      ];
-    }
-
-    if (type === 'backtrack' && cell) {
-      return [
-        { text: `This cell needs <strong>trial and error</strong>. Look at <strong>R${cell.row + 1}C${cell.col + 1}</strong>.`, highlights: [{ row: cell.row, col: cell.col, color: 'info' }], badge },
-        { text: `After testing possibilities, <strong>${value}</strong> is the only number that works here.`, highlights: [{ row: cell.row, col: cell.col, color: 'success' }], placeValue: true, badge },
       ];
     }
 
@@ -422,7 +396,7 @@ class App {
       this._showToast('🎉 Puzzle completely solved!', 'success');
       this._renderHint({
         type: 'complete',
-        explanation: '<strong>Puzzle Solved!</strong> All cells have been filled using a combination of logical techniques and backtracking.',
+        explanation: '<strong>Puzzle Solved!</strong> All cells have been filled.',
       });
     }, delay + 200);
   }
@@ -488,14 +462,14 @@ class App {
         const data = await res.json();
         const grid = data.newboard.grids[0];
 
-        // Validate: must be solvable without backtracking
+        // Validate: must be solvable with supported logical hints
         if (this.solver.canSolveLogically(grid.value)) {
           puzzle = grid.value;
           solution = grid.solution;
           found = true;
           console.log(`Puzzle from API validated ✓ (attempt ${attempt + 1})`);
         } else {
-          console.log(`API puzzle needs backtracking, retrying... (${attempt + 1}/3)`);
+          console.log(`API puzzle needs unsupported logic, retrying... (${attempt + 1}/3)`);
         }
       } catch (err) {
         console.log('API attempt failed:', err.message);
@@ -546,13 +520,17 @@ class App {
     this._updateGameBar();
   }
 
-  _onPlayerMove(r, c, val) {
+  _onPlayerMove(r, c, val, oldVal = 0) {
+    if (val === oldVal) return;
+
     if (this.notesMode && this.gameMode && val >= 1 && val <= 9) {
       // Notes mode: toggle pencil mark, don't place value
       // Revert the setValue that grid.js already did
-      this.gridUI.setValue(r, c, 0, false);
+      this.gridUI.setValue(r, c, oldVal, false);
+      if (oldVal !== 0) return;
 
       const notes = this.userNotes[r][c];
+      const hadNote = notes.has(val);
       if (notes.has(val)) {
         notes.delete(val);
       } else {
@@ -561,13 +539,13 @@ class App {
       // Update notes display
       this.gridUI.showCandidates(this.userNotes);
       // Save to undo
-      this.undoStack.push({ row: r, col: c, type: 'note', val, prevVal: 0, newVal: 0 });
+      this.undoStack.push({ row: r, col: c, type: 'note', val, hadNote });
       document.getElementById('btn-undo').disabled = false;
       return;
     }
 
     // Normal mode: place value
-    this.undoStack.push({ row: r, col: c, prevVal: this.gridUI.grid[r]?.[c] === val ? 0 : this.gridUI.grid[r]?.[c], newVal: val });
+    this.undoStack.push({ row: r, col: c, prevVal: oldVal, newVal: val });
     document.getElementById('btn-undo').disabled = false;
 
     // Clear user notes for this cell when value is placed
@@ -621,8 +599,18 @@ class App {
 
   _undo() {
     if (this.undoStack.length === 0) return;
-    const { row, col, prevVal } = this.undoStack.pop();
-    this.gridUI.setValue(row, col, prevVal, false);
+    const move = this.undoStack.pop();
+    const { row, col, prevVal } = move;
+
+    if (move.type === 'note') {
+      const notes = this.userNotes[row][col];
+      if (move.hadNote) notes.add(move.val);
+      else notes.delete(move.val);
+      this.gridUI.showCandidates(this.userNotes);
+    } else {
+      this.gridUI.setValue(row, col, prevVal, false);
+    }
+
     this.gridUI.clearHighlights();
 
     if (this.undoStack.length === 0) {
