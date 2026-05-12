@@ -9,6 +9,7 @@ export class SudokuGrid {
     this.originalCells = new Set();
     this.selectedCell = null;
     this.editing = false;
+    this.editAll = false; // When true, allows editing original cells (scan review mode)
     this.onCellChange = null;
     this._build();
     this._bindKeyboard();
@@ -77,14 +78,14 @@ export class SudokuGrid {
       if (!this.selectedCell) return;
       const [r, c] = this.selectedCell;
 
-      if (e.key >= '1' && e.key <= '9' && this.editing && !this.originalCells.has(`${r},${c}`)) {
+      if (e.key >= '1' && e.key <= '9' && this.editing && (!this.originalCells.has(`${r},${c}`) || this.editAll)) {
         e.preventDefault();
         const oldValue = this.grid[r][c];
         const newValue = parseInt(e.key, 10);
         this.setValue(r, c, newValue, false);
         if (this.onCellChange) this.onCellChange(r, c, newValue, oldValue);
       }
-      else if ((e.key === 'Delete' || e.key === 'Backspace') && this.editing && !this.originalCells.has(`${r},${c}`)) {
+      else if ((e.key === 'Delete' || e.key === 'Backspace') && this.editing && (!this.originalCells.has(`${r},${c}`) || this.editAll)) {
         e.preventDefault();
         const oldValue = this.grid[r][c];
         this.setValue(r, c, 0, false);
@@ -110,7 +111,7 @@ export class SudokuGrid {
         e.preventDefault();
         if (!this.selectedCell || !this.editing) return;
         const [r, c] = this.selectedCell;
-        if (this.originalCells.has(`${r},${c}`)) return;
+        if (this.originalCells.has(`${r},${c}`) && !this.editAll) return;
         const n = parseInt(btn.dataset.num);
         const oldValue = this.grid[r][c];
         this.setValue(r, c, n, false);
@@ -125,7 +126,7 @@ export class SudokuGrid {
       eraseBtn.addEventListener('click', () => {
         if (!this.selectedCell || !this.editing) return;
         const [r, c] = this.selectedCell;
-        if (this.originalCells.has(`${r},${c}`)) return;
+        if (this.originalCells.has(`${r},${c}`) && !this.editAll) return;
         const oldValue = this.grid[r][c];
         this.setValue(r, c, 0, false);
         if (this.onCellChange) this.onCellChange(r, c, 0, oldValue);

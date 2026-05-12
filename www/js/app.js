@@ -163,18 +163,22 @@ class App {
         }
       }
 
-      // Enable editing for review
-      this._toggleEdit();
+      // Enable full editing for OCR review — user can change ANY cell
+      this.gridUI.editAll = true;
+      this.gridUI.enableEditing();
+      this.gridUI.editing = true;
+      const btn = document.getElementById('btn-edit-toggle');
+      if (btn) { btn.textContent = '✅ Confirm'; btn.classList.add('active'); }
 
       if (uncertainCount > 0) {
         // Highlight uncertain cells
         this.gridUI.highlightCells(uncertainHighlights);
         this._showToast(
-          `Found ${totalDigits} digits (${uncertainCount} uncertain — highlighted in orange). Please review and correct before solving.`,
+          `Found ${totalDigits} digits (${uncertainCount} uncertain — highlighted in orange). Tap any cell to correct, then press Confirm.`,
           'info'
         );
       } else {
-        this._showToast(`Found ${totalDigits} digits. Review and click Edit again when done.`, 'success');
+        this._showToast(`Found ${totalDigits} digits. Tap any cell to correct, then press Confirm.`, 'success');
       }
     };
 
@@ -705,6 +709,7 @@ class App {
   _toggleEdit() {
     const btn = document.getElementById('btn-edit-toggle');
     if (this.gridUI.editing) {
+      this.gridUI.editAll = false; // End full-edit mode
       this.gridUI.disableEditing();
       this.gridUI.lockAsOriginals(); // Mark current values as puzzle givens
       btn.textContent = '✏️ Edit';
