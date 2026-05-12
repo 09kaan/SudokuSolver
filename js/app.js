@@ -713,12 +713,31 @@ class App {
   _toggleEdit() {
     const btn = document.getElementById('btn-edit-toggle');
     if (this.gridUI.editing) {
+      const wasScanReview = this.gridUI.editAll;
       this.gridUI.editAll = false;
       this.gridUI.disableEditing();
       this.gridUI.lockAsOriginals();
       btn.querySelector('.tool-icon').textContent = '✏️';
       btn.querySelector('.tool-label').textContent = 'Edit';
       btn.classList.remove('active');
+
+      // If coming from scan review, initialize game mode
+      if (wasScanReview) {
+        const grid = this.gridUI.getGrid();
+        this.solution = this.solver.solveComplete(grid);
+        this.gameMode = true;
+        this.undoStack = [];
+        this.errorCount = 0;
+        this.notesMode = false;
+        this.userNotes = Array.from({ length: 9 }, () => Array.from({ length: 9 }, () => new Set()));
+        this.gridUI.enableEditing();
+
+        document.getElementById('game-difficulty').textContent = 'Scanned';
+        document.getElementById('game-errors').textContent = '0/3';
+        this._startTimer();
+        this._updateGameBar();
+        this._showToast('Puzzle confirmed! Good luck! 🎯', 'success');
+      }
     } else {
       this.gridUI.enableEditing();
       btn.querySelector('.tool-icon').textContent = '✏️';
