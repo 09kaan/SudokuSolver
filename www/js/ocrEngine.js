@@ -58,12 +58,19 @@ export class OCREngine {
         }
 
         try {
-          // Add white padding around cell for better OCR
-          const padded = this._addPadding(cells[r][c].canvas, 10);
-          const { digit, confidence } = await this._recognizeDigit(padded);
-          if (digit >= 1 && digit <= 9) {
-            grid[r][c] = digit;
-            confidences[r][c] = confidence;
+          // Crop center 60% to remove grid lines, then add padding
+          const cropped = this._centerCrop(cells[r][c].canvas, 0.20);
+          // Check if cell is truly empty (very few dark pixels)
+          if (this._isCellEmpty(cropped)) {
+            grid[r][c] = 0;
+            confidences[r][c] = 100;
+          } else {
+            const padded = this._addPadding(cropped, 12);
+            const { digit, confidence } = await this._recognizeDigit(padded);
+            if (digit >= 1 && digit <= 9) {
+              grid[r][c] = digit;
+              confidences[r][c] = confidence;
+            }
           }
         } catch (e) {
           console.warn(`OCR failed for cell [${r}][${c}]:`, e);
@@ -71,6 +78,9 @@ export class OCREngine {
         }
       }
     }
+
+    // Post-scan validation: remove duplicate digits that break Sudoku rules
+    this._validateAndFixGrid(grid, confidences);
 
     return { grid, confidences };
   }
@@ -104,7 +114,7 @@ export class OCREngine {
       } catch (e) { /* skip */ }
     }
 
-    if (bestDigit >= 1 && bestConf > 10) {
+    if (bestDigit >= 1 && bestConf > 40) {
       return { digit: bestDigit, confidence: bestConf };
     }
     return { digit: 0, confidence: 0 };
@@ -141,16 +151,16 @@ export class OCREngine {
       // If pixel is darker than mean → it's text → make it black
       const isForeground = val < mean * 0.85;
       binaryData.data[i] = isForeground ? 0 : 255;
-      binaryData.data[i+1] = isForeground ? 0 : 255;
-      binaryData.data[i+2] = isForeground ? 0 : 255;
-      binaryData.data[i+3] = 255;
+      binaryData.data[i + 1] = isForeground ? 0 : 255;
+      binaryData.data[i + 2] = isForeground ? 0 : 255;
+      binaryData.data[i + 3] = 255;
 
       // Inverted version
       const isInvFg = val > mean * 1.15;
       invData.data[i] = isInvFg ? 0 : 255;
-      invData.data[i+1] = isInvFg ? 0 : 255;
-      invData.data[i+2] = isInvFg ? 0 : 255;
-      invData.data[i+3] = 255;
+      invData.data[i + 1] = isInvFg ? 0 : 255;
+      invData.data[i + 2] = isInvFg ? 0 : 255;
+      invData.data[i + 3] = 255;
     }
 
     // Attempt 2: Black text on white
@@ -166,6 +176,82 @@ export class OCREngine {
     results.push(c3);
 
     return results;
+  }
+
+  /**
+   * Crop center portion of cell to remove grid lines
+   * @param {HTMLCanvasElement} canvas
+   * @param {number} margin - fraction to remove from each edge (0.20 = 20%)
+   */
+  _centerCrop(canvas, margin) {
+    const w = canvas.width, h = canvas.height;
+    const mx = Math.floor(w * margin), my = Math.floor(h * margin);
+    const cw = w - mx * 2, ch = h - my * 2;
+    if (cw < 5 || ch < 5) return canvas;
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    c.getContext('2d').drawImage(canvas, mx, my, cw, ch, 0, 0, cw, ch);
+    return c;
+  }
+
+  /**
+   * Check if a cell is empty by counting dark pixels
+   */
+  _isCellEmpty(canvas) {
+    const ctx = canvas.getContext('2d');
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let dark = 0, total = d.length / 4;
+    for (let i = 0; i < d.length; i += 4) {
+      const brightness = (d[i] + d[i + 1] + d[i + 2]) / 3;
+      if (brightness < 128) dark++;
+    }
+    // If less than 5% of pixels are dark, cell is empty
+    return (dark / total) < 0.05;
+  }
+
+  /**
+   * Validate scanned grid and remove low-confidence duplicates
+   */
+  _validateAndFixGrid(grid, confidences) {
+    // Check rows, cols, boxes for duplicate digits — remove the lower confidence one
+    for (let i = 0; i < 9; i++) {
+      // Check row
+      this._removeDuplicates(grid, confidences,
+        Array.from({ length: 9 }, (_, c) => [i, c]));
+      // Check col
+      this._removeDuplicates(grid, confidences,
+        Array.from({ length: 9 }, (_, r) => [r, i]));
+    }
+    // Check boxes
+    for (let br = 0; br < 3; br++) {
+      for (let bc = 0; bc < 3; bc++) {
+        const cells = [];
+        for (let r = br * 3; r < br * 3 + 3; r++)
+          for (let c = bc * 3; c < bc * 3 + 3; c++)
+            cells.push([r, c]);
+        this._removeDuplicates(grid, confidences, cells);
+      }
+    }
+  }
+
+  _removeDuplicates(grid, confidences, cells) {
+    const seen = new Map(); // digit -> [r, c, confidence]
+    for (const [r, c] of cells) {
+      const v = grid[r][c];
+      if (v === 0) continue;
+      if (seen.has(v)) {
+        // Duplicate! Remove the one with lower confidence
+        const [pr, pc, pconf] = seen.get(v);
+        if (confidences[r][c] < pconf) {
+          grid[r][c] = 0; // remove current (lower confidence)
+        } else {
+          grid[pr][pc] = 0; // remove previous (lower confidence)
+          seen.set(v, [r, c, confidences[r][c]]);
+        }
+      } else {
+        seen.set(v, [r, c, confidences[r][c]]);
+      }
+    }
   }
 
   _createCanvas(w, h) {
