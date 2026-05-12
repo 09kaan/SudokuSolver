@@ -1586,47 +1586,52 @@ export class SudokuSolver {
 
   // ── Search Proof (Contradiction Fallback) ───────────
   _findSearchProof(grid, candidates) {
-    // Find the empty cell with fewest candidates
-    let minSize = 10, bestR = -1, bestC = -1;
+    // Collect all empty cells, sorted by candidate count (fewest first)
+    const emptyCells = [];
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
-        if (grid[r][c] !== 0) continue;
-        const sz = candidates[r][c].size;
-        if (sz > 0 && sz < minSize) { minSize = sz; bestR = r; bestC = c; }
+        if (grid[r][c] === 0 && candidates[r][c].size > 0) {
+          emptyCells.push({ r, c, size: candidates[r][c].size });
+        }
       }
     }
-    if (bestR === -1) return null;
+    emptyCells.sort((a, b) => a.size - b.size);
 
-    const cands = [...candidates[bestR][bestC]];
-    // Try each candidate — if it leads to contradiction, eliminate it
-    const eliminated = [];
-    for (const tryVal of cands) {
-      const testGrid = grid.map(row => [...row]);
-      testGrid[bestR][bestC] = tryVal;
-      if (this._leadsToContradiction(testGrid)) {
-        eliminated.push(tryVal);
+    // Try each cell — if we can eliminate candidates via contradiction, do it
+    for (const { r: bestR, c: bestC } of emptyCells) {
+      const cands = [...candidates[bestR][bestC]];
+      if (cands.length <= 1) continue;
+
+      const eliminated = [];
+      for (const tryVal of cands) {
+        const testGrid = grid.map(row => [...row]);
+        testGrid[bestR][bestC] = tryVal;
+        if (this._leadsToContradiction(testGrid)) {
+          eliminated.push(tryVal);
+        }
       }
-    }
 
-    if (eliminated.length === 0) return null;
+      if (eliminated.length === 0) continue;
 
-    // If all but one eliminated → we know the answer
-    const remaining = cands.filter(v => !eliminated.includes(v));
-    if (remaining.length === 1) {
+      // If all but one eliminated → we know the answer
+      const remaining = cands.filter(v => !eliminated.includes(v));
+      if (remaining.length === 1) {
+        return {
+          type: 'search_proof', cell: { row: bestR, col: bestC }, value: remaining[0],
+          explanation: `<strong>Proof by Contradiction</strong>: At R${bestR + 1}C${bestC + 1}, trying ${eliminated.join(', ')} each leads to a contradiction. The only valid digit is <strong>${remaining[0]}</strong>.`,
+          highlights: [{ row: bestR, col: bestC, color: 'success' }],
+        };
+      }
+
+      // Otherwise, report eliminations
+      const eliminations = eliminated.map(val => ({ row: bestR, col: bestC, val }));
       return {
-        type: 'search_proof', cell: { row: bestR, col: bestC }, value: remaining[0],
-        explanation: `<strong>Proof by Contradiction</strong>: At R${bestR + 1}C${bestC + 1}, trying ${eliminated.join(', ')} each leads to a contradiction. The only valid digit is <strong>${remaining[0]}</strong>.`,
-        highlights: [{ row: bestR, col: bestC, color: 'success' }],
+        type: 'search_proof', cell: null, value: null, eliminationValue: eliminated, eliminations,
+        explanation: `<strong>Proof by Contradiction</strong>: At R${bestR + 1}C${bestC + 1}, ${eliminated.length > 1 ? 'digits ' + eliminated.join(', ') + ' each lead' : 'digit ' + eliminated[0] + ' leads'} to a contradiction and can be eliminated.`,
+        highlights: [{ row: bestR, col: bestC, color: 'warning' }],
       };
     }
-
-    // Otherwise, report eliminations
-    const eliminations = eliminated.map(val => ({ row: bestR, col: bestC, val }));
-    return {
-      type: 'search_proof', cell: null, value: null, eliminationValue: eliminated, eliminations,
-      explanation: `<strong>Proof by Contradiction</strong>: At R${bestR + 1}C${bestC + 1}, ${eliminated.length > 1 ? 'digits ' + eliminated.join(', ') + ' each lead' : 'digit ' + eliminated[0] + ' leads'} to a contradiction and can be eliminated.`,
-      highlights: [{ row: bestR, col: bestC, color: 'warning' }],
-    };
+    return null;
   }
 
   /**
