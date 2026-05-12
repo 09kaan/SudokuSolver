@@ -84,6 +84,7 @@ export class SudokuGrid {
         const newValue = parseInt(e.key, 10);
         this.setValue(r, c, newValue, false);
         if (this.onCellChange) this.onCellChange(r, c, newValue, oldValue);
+        this._highlightSameNumber(r, c);
       }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && this.editing && (!this.originalCells.has(`${r},${c}`) || this.editAll)) {
         e.preventDefault();
@@ -117,6 +118,7 @@ export class SudokuGrid {
         this.setValue(r, c, n, false);
         if (this.onCellChange) this.onCellChange(r, c, n, oldValue);
         this._updateCompletedNumbers();
+        this._highlightSameNumber(r, c);
       });
     });
 

@@ -169,6 +169,7 @@ class App {
       this.gridUI.editing = true;
       const btn = document.getElementById('btn-edit-toggle');
       if (btn) {
+        btn.classList.remove('hidden');
         btn.querySelector('.tool-icon').textContent = '✅';
         btn.querySelector('.tool-label').textContent = 'Confirm';
         btn.classList.add('active');
@@ -723,6 +724,7 @@ class App {
 
       // If coming from scan review, initialize game mode
       if (wasScanReview) {
+        btn.classList.add('hidden'); // Hide Edit button after confirm
         const grid = this.gridUI.getGrid();
         this.solution = this.solver.solveComplete(grid);
         this.gameMode = true;
