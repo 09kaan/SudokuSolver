@@ -1,225 +1,210 @@
 [
   {
     "i": 1,
-    "diff": "Hard",
-    "logical": false,
-    "steps": 25,
+    "diff": "Medium",
+    "logical": true,
+    "steps": 53,
     "techs": {
-      "hidden_single": 15,
-      "two_string_kite": 5,
-      "x_chain": 1,
-      "simple_coloring": 1,
-      "naked_single": 2,
-      "w_wing": 1
+      "naked_single": 45,
+      "hidden_single": 7,
+      "two_string_kite": 1
     }
   },
   {
     "i": 2,
-    "diff": "Medium",
-    "logical": true,
-    "steps": 44,
-    "techs": {
-      "naked_single": 43,
-      "two_string_kite": 1
-    }
+    "error": "Unexpected token 'A', \"An error o\"... is not valid JSON"
   },
   {
     "i": 3,
     "diff": "Medium",
     "logical": true,
-    "steps": 46,
+    "steps": 64,
     "techs": {
-      "naked_single": 46
+      "naked_single": 38,
+      "hidden_single": 18,
+      "two_string_kite": 8
     }
   },
   {
     "i": 4,
     "diff": "Medium",
     "logical": true,
-    "steps": 48,
+    "steps": 55,
     "techs": {
       "naked_single": 38,
-      "hidden_single": 8,
-      "two_string_kite": 2
-    }
-  },
-  {
-    "i": 5,
-    "diff": "Medium",
-    "logical": true,
-    "steps": 48,
-    "techs": {
-      "naked_single": 44,
-      "hidden_single": 1,
+      "hidden_single": 14,
       "two_string_kite": 3
     }
   },
   {
-    "i": 6,
-    "diff": "Easy",
+    "i": 5,
+    "diff": "Hard",
     "logical": true,
-    "steps": 42,
+    "steps": 69,
     "techs": {
-      "naked_single": 41,
-      "two_string_kite": 1
+      "naked_single": 40,
+      "two_string_kite": 11,
+      "hidden_single": 17,
+      "x_chain": 1
+    }
+  },
+  {
+    "i": 6,
+    "diff": "Medium",
+    "logical": true,
+    "steps": 43,
+    "techs": {
+      "naked_single": 43
     }
   },
   {
     "i": 7,
     "diff": "Medium",
     "logical": true,
-    "steps": 69,
+    "steps": 61,
     "techs": {
-      "hidden_single": 26,
-      "two_string_kite": 12,
-      "pointing_pair": 1,
-      "naked_single": 30
+      "naked_single": 34,
+      "hidden_single": 17,
+      "two_string_kite": 10
     }
   },
   {
     "i": 8,
     "diff": "Medium",
     "logical": true,
-    "steps": 50,
+    "steps": 51,
     "techs": {
-      "naked_single": 42,
-      "hidden_single": 5,
-      "two_string_kite": 3
+      "naked_single": 50,
+      "two_string_kite": 1
     }
   },
   {
     "i": 9,
     "diff": "Medium",
     "logical": true,
-    "steps": 57,
+    "steps": 42,
     "techs": {
-      "naked_single": 43,
-      "hidden_single": 8,
-      "two_string_kite": 6
+      "naked_single": 42
     }
   },
   {
     "i": 10,
     "diff": "Medium",
     "logical": true,
-    "steps": 55,
+    "steps": 47,
     "techs": {
-      "naked_single": 39,
-      "hidden_single": 14,
-      "two_string_kite": 2
+      "naked_single": 42,
+      "hidden_single": 2,
+      "two_string_kite": 3
     }
   },
   {
     "i": 11,
     "diff": "Medium",
     "logical": true,
-    "steps": 49,
+    "steps": 48,
     "techs": {
-      "naked_single": 45,
-      "hidden_single": 2,
-      "two_string_kite": 2
+      "naked_single": 38,
+      "hidden_single": 7,
+      "two_string_kite": 3
     }
   },
   {
     "i": 12,
     "diff": "Hard",
     "logical": false,
-    "steps": 28,
+    "steps": 10,
     "techs": {
-      "two_string_kite": 8,
-      "hidden_single": 16,
-      "simple_coloring": 2,
-      "naked_single": 2
+      "two_string_kite": 4,
+      "hidden_single": 6
     }
   },
   {
     "i": 13,
-    "diff": "Medium",
+    "diff": "Hard",
     "logical": true,
-    "steps": 60,
+    "steps": 73,
     "techs": {
-      "naked_single": 47,
-      "hidden_single": 6,
-      "naked_pair": 1,
-      "two_string_kite": 6
+      "hidden_single": 27,
+      "two_string_kite": 13,
+      "naked_single": 33
     }
   },
   {
     "i": 14,
-    "diff": "Easy",
+    "diff": "Medium",
     "logical": true,
-    "steps": 42,
+    "steps": 48,
     "techs": {
-      "naked_single": 41,
-      "two_string_kite": 1
+      "naked_single": 43,
+      "hidden_single": 3,
+      "two_string_kite": 2
     }
   },
   {
     "i": 15,
-    "diff": "Hard",
-    "logical": false,
-    "steps": 8,
+    "diff": "Medium",
+    "logical": true,
+    "steps": 46,
     "techs": {
-      "hidden_single": 7,
-      "two_string_kite": 1
+      "naked_single": 44,
+      "two_string_kite": 2
     }
   },
   {
     "i": 16,
-    "diff": "Hard",
+    "diff": "Medium",
     "logical": true,
-    "steps": 66,
+    "steps": 54,
     "techs": {
-      "two_string_kite": 8,
-      "hidden_single": 17,
-      "naked_single": 40,
-      "x_chain": 1
+      "naked_single": 33,
+      "hidden_single": 15,
+      "naked_pair": 1,
+      "two_string_kite": 5
     }
   },
   {
     "i": 17,
-    "diff": "Easy",
+    "diff": "Medium",
     "logical": true,
-    "steps": 42,
+    "steps": 48,
     "techs": {
-      "naked_single": 36,
-      "hidden_single": 5,
-      "two_string_kite": 1
+      "naked_single": 34,
+      "hidden_single": 9,
+      "two_string_kite": 4,
+      "skyscraper": 1
     }
   },
   {
     "i": 18,
     "diff": "Medium",
     "logical": true,
-    "steps": 56,
+    "steps": 61,
     "techs": {
-      "hidden_single": 14,
-      "box_line_reduction": 1,
-      "two_string_kite": 5,
-      "naked_single": 36
+      "naked_single": 37,
+      "hidden_single": 18,
+      "two_string_kite": 6
     }
   },
   {
     "i": 19,
     "diff": "Medium",
     "logical": true,
-    "steps": 63,
+    "steps": 59,
     "techs": {
-      "hidden_single": 26,
-      "two_string_kite": 8,
-      "naked_single": 29
+      "naked_single": 35,
+      "hidden_single": 17,
+      "two_string_kite": 7
     }
   },
   {
     "i": 20,
-    "diff": "Hard",
+    "diff": "Medium",
     "logical": true,
-    "steps": 70,
+    "steps": 46,
     "techs": {
-      "hidden_single": 21,
       "naked_single": 38,
-      "two_string_kite": 10,
-      "simple_coloring": 1
+      "hidden_single": 8
     }
   }
 ]

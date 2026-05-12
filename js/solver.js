@@ -114,6 +114,8 @@ export class SudokuSolver {
       () => this._findEmptyRectangle(grid, candidates),
       () => this._findUniqueRectangle(grid, candidates),
       () => this._findXChain(grid, candidates),
+      () => this._findRemotePairs(grid, candidates),
+      () => this._findXYChain(grid, candidates),
       () => this._findForcingChain(grid, candidates),
     ];
 
@@ -1174,7 +1176,6 @@ export class SudokuSolver {
   // ── Empty Rectangle ─────────────────────────────────
   _findEmptyRectangle(grid, candidates) {
     for (let v = 1; v <= 9; v++) {
-      // For each box, check if v candidates form an empty rectangle
       for (let br = 0; br < 3; br++) {
         for (let bc = 0; bc < 3; bc++) {
           const boxCells = [];
@@ -1182,46 +1183,181 @@ export class SudokuSolver {
             for (let c = bc * 3; c < bc * 3 + 3; c++)
               if (grid[r][c] === 0 && candidates[r][c].has(v)) boxCells.push([r, c]);
           if (boxCells.length < 2) continue;
-          // Find a row and col within box that contain all v candidates
           const boxRows = new Set(boxCells.map(([r]) => r));
           const boxCols = new Set(boxCells.map(([, c]) => c));
-          // ER: all candidates NOT in a single row, and NOT in a single col
           if (boxRows.size === 1 || boxCols.size === 1) continue;
-          // Find a row in box with candidates, and a col in box with candidates
           for (const erRow of boxRows) {
             for (const erCol of boxCols) {
-              // Check if removing erRow leaves all in erCol, or removing erCol leaves all in erRow
               const withoutRow = boxCells.filter(([r]) => r !== erRow);
-              const withoutCol = boxCells.filter(([, c]) => c !== erCol);
               const allInCol = withoutRow.every(([, c]) => c === erCol);
-              const allInRow = withoutCol.every(([r]) => r === erRow);
-              if (!allInCol && !allInRow) continue;
-              // Find conjugate pair in row or col outside box
               if (allInCol) {
-                // Look for strong link in erRow outside this box
                 const rowCells = [];
                 for (let c = 0; c < 9; c++) {
                   if (c >= bc * 3 && c < bc * 3 + 3) continue;
                   if (grid[erRow][c] === 0 && candidates[erRow][c].has(v)) rowCells.push(c);
                 }
                 if (rowCells.length !== 1) continue;
-                const targetC = rowCells[0];
-                // Eliminate v from intersection of erCol and targetC's column that see erCol
+                const linkC = rowCells[0];
+                const eliminations = [];
                 for (let r = 0; r < 9; r++) {
                   if (r >= br * 3 && r < br * 3 + 3) continue;
-                  if (grid[r][erCol] === 0 && candidates[r][erCol].has(v) && grid[r][targetC] === 0 && candidates[r][targetC].has(v)) {
-                    // Actually eliminate from cell at (r, targetC) — no, eliminate at intersection
+                  if (r === erRow) continue;
+                  if (grid[r][linkC] === 0 && candidates[r][linkC].has(v) &&
+                    grid[r][erCol] === 0 && candidates[r][erCol].has(v)) {
+                    eliminations.push({ row: r, col: linkC });
                   }
                 }
-                // Eliminate at (any r in erCol outside box) if that r sees targetC
-                const targetR = boxCells.find(([r, c]) => c === erCol && r !== erRow);
-                if (!targetR) continue;
-                // Eliminate v from cell at intersection: same col as targetC, same row as erCol endpoint
-                const elimR = targetR[0]; // row of the erCol cell
-                // Actually, ER eliminates from the cell seeing both the strong link endpoint and the ER col
-                // This is getting complex, skip for now and let other techniques handle it
+                if (eliminations.length === 0) continue;
+                const highlights = boxCells.map(([r, c]) => ({ row: r, col: c, color: 'info' }));
+                highlights.push({ row: erRow, col: linkC, color: 'primary' });
+                eliminations.forEach(e => highlights.push({ row: e.row, col: e.col, color: 'warning' }));
+                return {
+                  type: 'empty_rectangle', cell: null, value: null, eliminationValue: v, eliminations,
+                  explanation: `<strong>Empty Rectangle</strong> on digit <strong>${v}</strong>: Box ${br * 3 + bc + 1} forms an ER linked through Row ${erRow + 1}. Digit ${v} eliminated.`,
+                  highlights,
+                };
+              }
+              const withoutCol = boxCells.filter(([, c]) => c !== erCol);
+              const allInRow = withoutCol.every(([r]) => r === erRow);
+              if (allInRow) {
+                const colCells = [];
+                for (let r = 0; r < 9; r++) {
+                  if (r >= br * 3 && r < br * 3 + 3) continue;
+                  if (grid[r][erCol] === 0 && candidates[r][erCol].has(v)) colCells.push(r);
+                }
+                if (colCells.length !== 1) continue;
+                const linkR = colCells[0];
+                const eliminations = [];
+                for (let c = 0; c < 9; c++) {
+                  if (c >= bc * 3 && c < bc * 3 + 3) continue;
+                  if (c === erCol) continue;
+                  if (grid[linkR][c] === 0 && candidates[linkR][c].has(v) &&
+                    grid[erRow][c] === 0 && candidates[erRow][c].has(v)) {
+                    eliminations.push({ row: linkR, col: c });
+                  }
+                }
+                if (eliminations.length === 0) continue;
+                const highlights = boxCells.map(([r, c]) => ({ row: r, col: c, color: 'info' }));
+                highlights.push({ row: linkR, col: erCol, color: 'primary' });
+                eliminations.forEach(e => highlights.push({ row: e.row, col: e.col, color: 'warning' }));
+                return {
+                  type: 'empty_rectangle', cell: null, value: null, eliminationValue: v, eliminations,
+                  explanation: `<strong>Empty Rectangle</strong> on digit <strong>${v}</strong>: Box ${br * 3 + bc + 1} forms an ER linked through Column ${erCol + 1}. Digit ${v} eliminated.`,
+                  highlights,
+                };
               }
             }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── Remote Pairs ────────────────────────────────────
+  _findRemotePairs(grid, candidates) {
+    const biCells = [];
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (grid[r][c] === 0 && candidates[r][c].size === 2) biCells.push([r, c]);
+    const pairGroups = new Map();
+    for (const [r, c] of biCells) {
+      const key = [...candidates[r][c]].sort((a, b) => a - b).join(',');
+      if (!pairGroups.has(key)) pairGroups.set(key, []);
+      pairGroups.get(key).push([r, c]);
+    }
+    for (const [pairKey, cells] of pairGroups) {
+      if (cells.length < 3) continue;
+      const [a, b] = pairKey.split(',').map(Number);
+      for (let si = 0; si < cells.length; si++) {
+        const [sr, sc] = cells[si];
+        const visited = new Map();
+        visited.set(`${sr},${sc}`, 0);
+        const queue = [[sr, sc, 0]];
+        while (queue.length > 0) {
+          const [cr, cc, depth] = queue.shift();
+          if (depth > 6) continue;
+          for (const [nr, nc] of cells) {
+            const nk = `${nr},${nc}`;
+            if (visited.has(nk) || !this._isPeer(cr, cc, nr, nc)) continue;
+            visited.set(nk, depth + 1);
+            queue.push([nr, nc, depth + 1]);
+            if ((depth + 1) % 2 === 0) {
+              const eliminations = [];
+              for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                  if (grid[r][c] !== 0 || (r === sr && c === sc) || (r === nr && c === nc)) continue;
+                  if (!this._isPeer(r, c, sr, sc) || !this._isPeer(r, c, nr, nc)) continue;
+                  if (candidates[r][c].has(a)) eliminations.push({ row: r, col: c, val: a });
+                  if (candidates[r][c].has(b)) eliminations.push({ row: r, col: c, val: b });
+                }
+              }
+              if (eliminations.length > 0) {
+                const highlights = [{ row: sr, col: sc, color: 'primary' }, { row: nr, col: nc, color: 'primary' }];
+                const seen = new Set();
+                eliminations.forEach(e => { const k = `${e.row},${e.col}`; if (!seen.has(k)) { seen.add(k); highlights.push({ row: e.row, col: e.col, color: 'warning' }); } });
+                return {
+                  type: 'remote_pairs', cell: null, value: null, eliminationValue: [a, b], eliminations,
+                  explanation: `<strong>Remote Pairs</strong>: Chain of {${a},${b}} pairs from R${sr + 1}C${sc + 1} to R${nr + 1}C${nc + 1}. Digits ${a},${b} eliminated from cells seeing both endpoints.`,
+                  highlights,
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── XY-Chain ────────────────────────────────────────
+  _findXYChain(grid, candidates) {
+    const biCells = [];
+    for (let r = 0; r < 9; r++)
+      for (let c = 0; c < 9; c++)
+        if (grid[r][c] === 0 && candidates[r][c].size === 2) biCells.push([r, c]);
+    if (biCells.length < 3) return null;
+    for (const [sr, sc] of biCells) {
+      const startVals = [...candidates[sr][sc]];
+      for (const startVal of startVals) {
+        const otherStart = startVals.find(v => v !== startVal);
+        const stack = [[sr, sc, otherStart, [`${sr},${sc}`]]];
+        while (stack.length > 0) {
+          const [cr, cc, exitVal, path] = stack.pop();
+          if (path.length > 7) continue;
+          for (const [nr, nc] of biCells) {
+            const nk = `${nr},${nc}`;
+            if (path.includes(nk) || !this._isPeer(cr, cc, nr, nc)) continue;
+            if (!candidates[nr][nc].has(exitVal)) continue;
+            const nextOther = [...candidates[nr][nc]].find(v => v !== exitVal);
+            const newPath = [...path, nk];
+            if (nextOther === startVal && newPath.length >= 3) {
+              const eliminations = [];
+              for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                  if (grid[r][c] !== 0 || !candidates[r][c].has(startVal)) continue;
+                  const k = `${r},${c}`;
+                  if (k === `${sr},${sc}` || k === nk) continue;
+                  if (this._isPeer(r, c, sr, sc) && this._isPeer(r, c, nr, nc)) {
+                    eliminations.push({ row: r, col: c });
+                  }
+                }
+              }
+              if (eliminations.length > 0) {
+                const chainCells = newPath.map(k => k.split(',').map(Number));
+                const highlights = chainCells.map(([r, c], i) => ({
+                  row: r, col: c,
+                  color: i === 0 || i === chainCells.length - 1 ? 'primary' : 'info'
+                }));
+                eliminations.forEach(e => highlights.push({ row: e.row, col: e.col, color: 'warning' }));
+                return {
+                  type: 'xy_chain', cell: null, value: null, eliminationValue: startVal, eliminations,
+                  explanation: `<strong>XY-Chain</strong>: Chain of ${newPath.length} bi-value cells from R${sr + 1}C${sc + 1} to R${nr + 1}C${nc + 1}. Both ends can be <strong>${startVal}</strong>, so it's eliminated from cells seeing both.`,
+                  highlights,
+                };
+              }
+            }
+            stack.push([nr, nc, nextOther, newPath]);
           }
         }
       }
