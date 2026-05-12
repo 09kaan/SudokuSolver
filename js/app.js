@@ -168,7 +168,11 @@ class App {
       this.gridUI.enableEditing();
       this.gridUI.editing = true;
       const btn = document.getElementById('btn-edit-toggle');
-      if (btn) { btn.textContent = '✅ Confirm'; btn.classList.add('active'); }
+      if (btn) {
+        btn.querySelector('.tool-icon').textContent = '✅';
+        btn.querySelector('.tool-label').textContent = 'Confirm';
+        btn.classList.add('active');
+      }
 
       if (uncertainCount > 0) {
         // Highlight uncertain cells
@@ -709,14 +713,16 @@ class App {
   _toggleEdit() {
     const btn = document.getElementById('btn-edit-toggle');
     if (this.gridUI.editing) {
-      this.gridUI.editAll = false; // End full-edit mode
+      this.gridUI.editAll = false;
       this.gridUI.disableEditing();
-      this.gridUI.lockAsOriginals(); // Mark current values as puzzle givens
-      btn.textContent = '✏️ Edit';
+      this.gridUI.lockAsOriginals();
+      btn.querySelector('.tool-icon').textContent = '✏️';
+      btn.querySelector('.tool-label').textContent = 'Edit';
       btn.classList.remove('active');
     } else {
       this.gridUI.enableEditing();
-      btn.textContent = '✏️ Editing...';
+      btn.querySelector('.tool-icon').textContent = '✏️';
+      btn.querySelector('.tool-label').textContent = 'Editing...';
       btn.classList.add('active');
     }
   }
