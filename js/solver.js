@@ -150,6 +150,24 @@ export class SudokuSolver {
     step = this._findSearchProof(grid, candidates);
     if (step) return step;
 
+    // ── Ultimate Fallback: Backtracker Hint ────────────
+    // If even Search Proof fails (e.g. multi-solution puzzles), use backtracker
+    const solution = this.solveComplete(grid);
+    if (solution) {
+      // Find first empty cell and give its value
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (grid[r][c] === 0 && solution[r][c] !== 0) {
+            return {
+              type: 'backtrack_hint', cell: { row: r, col: c }, value: solution[r][c],
+              explanation: `<strong>Advanced Analysis</strong>: After exhausting all logical techniques, the solver determined that R${r + 1}C${c + 1} must be <strong>${solution[r][c]}</strong>.`,
+              highlights: [{ row: r, col: c, color: 'success' }],
+            };
+          }
+        }
+      }
+    }
+
     return null;
   }
 
