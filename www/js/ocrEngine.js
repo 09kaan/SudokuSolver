@@ -58,14 +58,15 @@ export class OCREngine {
         }
 
         try {
-          // Crop center 60% to remove grid lines, then add padding
-          const cropped = this._centerCrop(cells[r][c].canvas, 0.20);
+          // Crop center to remove grid lines, resize for consistency, then pad
+          const cropped = this._centerCrop(cells[r][c].canvas, 0.12);
+          const resized = this._resizeCell(cropped, 56, 56);
           // Check if cell is truly empty (very few dark pixels)
-          if (this._isCellEmpty(cropped)) {
+          if (this._isCellEmpty(resized)) {
             grid[r][c] = 0;
             confidences[r][c] = 100;
           } else {
-            const padded = this._addPadding(cropped, 12);
+            const padded = this._addPadding(resized, 14);
             const { digit, confidence } = await this._recognizeDigit(padded);
             if (digit >= 1 && digit <= 9) {
               grid[r][c] = digit;
@@ -114,7 +115,7 @@ export class OCREngine {
       } catch (e) { /* skip */ }
     }
 
-    if (bestDigit >= 1 && bestConf > 40) {
+    if (bestDigit >= 1 && bestConf > 30) {
       return { digit: bestDigit, confidence: bestConf };
     }
     return { digit: 0, confidence: 0 };
@@ -175,7 +176,37 @@ export class OCREngine {
     c3.getContext('2d').putImageData(invData, 0, 0);
     results.push(c3);
 
+    // Attempt 4: Sharpened/contrast-enhanced (helps with 9, 6, 8)
+    const sharpData = ctx2.createImageData(w, h);
+    for (let i = 0; i < pixels.length; i += 4) {
+      const val = pixels[i];
+      // Stronger contrast: stretch histogram
+      const stretched = Math.max(0, Math.min(255, ((val - mean) * 2.0) + 128));
+      const isFg = stretched < 100;
+      sharpData.data[i] = isFg ? 0 : 255;
+      sharpData.data[i + 1] = isFg ? 0 : 255;
+      sharpData.data[i + 2] = isFg ? 0 : 255;
+      sharpData.data[i + 3] = 255;
+    }
+    const c4 = document.createElement('canvas');
+    c4.width = w; c4.height = h;
+    c4.getContext('2d').putImageData(sharpData, 0, 0);
+    results.push(c4);
+
     return results;
+  }
+
+  /**
+   * Resize cell to consistent dimensions for better OCR
+   */
+  _resizeCell(canvas, targetW, targetH) {
+    const c = document.createElement('canvas');
+    c.width = targetW; c.height = targetH;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(canvas, 0, 0, targetW, targetH);
+    return c;
   }
 
   /**
@@ -187,7 +218,7 @@ export class OCREngine {
     const w = canvas.width, h = canvas.height;
     const mx = Math.floor(w * margin), my = Math.floor(h * margin);
     const cw = w - mx * 2, ch = h - my * 2;
-    if (cw < 5 || ch < 5) return canvas;
+    if (cw < 8 || ch < 8) return canvas;
     const c = document.createElement('canvas');
     c.width = cw; c.height = ch;
     c.getContext('2d').drawImage(canvas, mx, my, cw, ch, 0, 0, cw, ch);
