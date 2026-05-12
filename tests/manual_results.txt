@@ -1,0 +1,5 @@
+P1 SOLVED LOGICAL steps:57 naked_single:39 hidden_single:14 two_string_kite:4
+P2 SOLVED LOGICAL steps:61 naked_single:35 hidden_single:23 hidden_pair:1 pointing_pair:1 naked_pair:1
+P3 SOLVED LOGICAL steps:60 naked_single:50 hidden_single:8 naked_pair:1 box_line_reduction:1
+P4 SOLVED LOGICAL steps:61 naked_single:51 hidden_single:7 naked_pair:2 hidden_pair:1
+P5 SOLVED LOGICAL steps:60 naked_single:44 hidden_single:14 hidden_pair:1 pointing_pair:1
